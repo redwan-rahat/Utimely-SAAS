@@ -1,0 +1,27 @@
+services:
+    postgres:
+        image: postgres:17
+        container_name: utimely-postgres
+        restart: unless-stopped
+        environment:
+            POSTGRES_USER: utimely
+            POSTGRES_PASSWORD: utimely_dev
+            POSTGRES_DB: utimely
+        
+        ports:
+            - "${POSTGRES_PORT}:5432"
+        volumes:
+            - postgres_data:/var/lib/postgresql/data
+
+    
+    redis:
+        image: redis:7-alpine
+        container_name: utimely-redis
+        restart: unless-stopped
+        ports:
+            - "${REDIS_PORT}:6379"
+
+
+volumes:
+    postgres_data:
+        
