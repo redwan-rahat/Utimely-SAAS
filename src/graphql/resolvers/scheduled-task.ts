@@ -82,6 +82,47 @@ export const scheduledTaskResolvers = {
         task: scheduledTask.task,
       }));
     },
+
+    upcomingScheduledTasks: async (
+  _parent: unknown,
+  args: { limit?: number },
+  context: GraphQLContext,
+) => {
+  const user = requireUser(context);
+
+  const limit = args.limit ?? 5;
+
+  if (!Number.isInteger(limit) || limit <= 0) {
+    throw new Error('Limit must be a positive whole number');
+  }
+
+  const today = new Date();
+
+  const startOfToday = new Date(
+    Date.UTC(
+      today.getUTCFullYear(),
+      today.getUTCMonth(),
+      today.getUTCDate(),
+    ),
+  );
+
+  return context.prisma.scheduledTask.findMany({
+    where: {
+      userId: user.id,
+      date: {
+        gte: startOfToday,
+      },
+    },
+    include: {
+      task: true,
+    },
+    orderBy: {
+      date: 'asc',
+    },
+    take: limit,
+  });
+    },
+
   },
 
   Mutation: {
@@ -179,4 +220,11 @@ export const scheduledTaskResolvers = {
       return true;
     },
   },
+
+  ScheduledTask: {
+  date: (scheduledTask: { date: Date }) =>
+    scheduledTask.date.toISOString(),
+},
+
+
 };

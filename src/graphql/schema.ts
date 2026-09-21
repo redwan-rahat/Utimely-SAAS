@@ -79,6 +79,7 @@ export const schema = createSchema<GraphQLContext>({
       durationSeconds: Int
       elapsedSeconds: Int!
       startedAt: String!
+      runStartedAt: String
       endsAt: String
       createdAt: String!
       updatedAt: String!
@@ -116,15 +117,14 @@ export const schema = createSchema<GraphQLContext>({
 
       tasksForDate(date: String!): [Task!]!
       tasksForMonth(year: Int!, month: Int!): [MonthlyScheduledTask!]!
-
+      upcomingScheduledTasks(limit: Int): [ScheduledTask!]!
+      
       taskTimeSessions(taskId: ID!): [TimeSession!]!
       taskTotalTime(taskId: ID!): Int!
 
       activeTimer: ActiveTimer
       timeSessions: [TimeSession!]!
       timeSummary: TimeSummary!
-     
-
     }
 
     type Mutation {
@@ -156,12 +156,12 @@ export const schema = createSchema<GraphQLContext>({
       cancelTimer: Boolean!
     }
 
-     type TimeSummary {
+    type TimeSummary {
       focusSeconds: Int!
       stopwatchSeconds: Int!
       manualSeconds: Int!
       totalSeconds: Int!
-      }
+    }
   `,
 
   resolvers: {
@@ -224,14 +224,20 @@ export const schema = createSchema<GraphQLContext>({
     },
 
     ActiveTimer: {
-      startedAt: (timer: { startedAt: Date }) => timer.startedAt.toISOString(),
+      startedAt: (timer: { startedAt: Date }) =>
+        timer.startedAt.toISOString(),
+
+      runStartedAt: (timer: { runStartedAt: Date | null }) =>
+        timer.runStartedAt?.toISOString() ?? null,
 
       endsAt: (timer: { endsAt: Date | null }) =>
         timer.endsAt?.toISOString() ?? null,
 
-      createdAt: (timer: { createdAt: Date }) => timer.createdAt.toISOString(),
+      createdAt: (timer: { createdAt: Date }) =>
+        timer.createdAt.toISOString(),
 
-      updatedAt: (timer: { updatedAt: Date }) => timer.updatedAt.toISOString(),
+      updatedAt: (timer: { updatedAt: Date }) =>
+        timer.updatedAt.toISOString(),
     },
   },
 });

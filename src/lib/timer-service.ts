@@ -14,25 +14,17 @@ export async function finalizeFocusTimer(timerId: string) {
       return null;
     }
 
-    // The timer may have been paused, cancelled,
-    // manually saved, or otherwise changed.
     if (
       timer.type !== 'FOCUS_TIMER' ||
       timer.status !== 'RUNNING' ||
-      !timer.endsAt
+      !timer.endsAt ||
+      !timer.runStartedAt ||
+      timer.durationSeconds === null
     ) {
       return null;
     }
 
-    // The job should only complete the timer
-    // when its actual end time has arrived.
     if (timer.endsAt.getTime() > now.getTime()) {
-      return null;
-    }
-
-    const durationSeconds = timer.durationSeconds;
-
-    if (durationSeconds === null) {
       return null;
     }
 
@@ -41,9 +33,9 @@ export async function finalizeFocusTimer(timerId: string) {
         userId: timer.userId,
         taskId: timer.taskId,
         type: 'FOCUS_TIMER',
-        startedAt: timer.createdAt,
-        endedAt: now,
-        duration: durationSeconds,
+        startedAt: timer.startedAt,
+        endedAt: timer.endsAt,
+        duration: timer.durationSeconds,
       },
     });
 

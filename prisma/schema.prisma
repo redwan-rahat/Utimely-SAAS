@@ -185,10 +185,19 @@ model ActiveTimer {
   status          ActiveTimerStatus @default(RUNNING)
   durationSeconds Int?
   elapsedSeconds  Int               @default(0)
-  startedAt       DateTime
-  endsAt          DateTime?
-  createdAt       DateTime          @default(now())
-  updatedAt       DateTime          @updatedAt
+
+  // Original timer start
+  startedAt DateTime
+
+  // Start of the current running segment.
+  // null while paused.
+  runStartedAt DateTime?
+
+  // Only used by a running focus timer.
+  endsAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   user User  @relation(fields: [userId], references: [id], onDelete: Cascade)
   task Task? @relation(fields: [taskId], references: [id], onDelete: SetNull)

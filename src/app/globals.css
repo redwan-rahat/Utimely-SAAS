@@ -3,13 +3,40 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --font-sans: 'Inter', sans-serif;
+
+  --color-primary: #6d5dfb;
+  --color-primary-hover: #5b4ce6;
+  --color-primary-light: #f0eeff;
+
+  --color-background: #ffffff;
+  --color-surface: #f8f8fb;
+  --color-surface-hover: #f2f1f7;
+
+  --color-text: #18181b;
+  --color-text-secondary: #71717a;
+  --color-text-muted: #a1a1aa;
+
+  --color-border: #e4e4e7;
+  --color-border-hover: #d4d4d8;
+
+  --color-success: #22c55e;
+  --color-warning: #f59e0b;
+  --color-danger: #ef4444;
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+
 }
+
+
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-inter);
 }
 
 @media (prefers-color-scheme: dark) {
