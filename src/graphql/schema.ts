@@ -6,6 +6,7 @@ import { tagResolvers } from './resolvers/tag';
 import { scheduledTaskResolvers } from './resolvers/scheduled-task';
 import { timeSessionResolvers } from './resolvers/time-session';
 import { activeTimerResolvers } from './resolvers/active-timer';
+import { calendarColorRuleResolvers } from './resolvers/calendar-color-rules';
 
 export const schema = createSchema<GraphQLContext>({
   typeDefs: /* GraphQL */ `
@@ -13,6 +14,8 @@ export const schema = createSchema<GraphQLContext>({
       PLANNED
       IN_PROGRESS
       COMPLETED
+      PAUSED
+      CANCELLED
     }
 
     enum TimeSessionType {
@@ -64,6 +67,7 @@ export const schema = createSchema<GraphQLContext>({
 
     type TimeSession {
       id: ID!
+      taskId: ID
       type: TimeSessionType!
       startedAt: String!
       endedAt: String!
@@ -118,13 +122,15 @@ export const schema = createSchema<GraphQLContext>({
       tasksForDate(date: String!): [Task!]!
       tasksForMonth(year: Int!, month: Int!): [MonthlyScheduledTask!]!
       upcomingScheduledTasks(limit: Int): [ScheduledTask!]!
-      
+      allScheduledTasks: [ScheduledTask!]!
+
       taskTimeSessions(taskId: ID!): [TimeSession!]!
       taskTotalTime(taskId: ID!): Int!
 
       activeTimer: ActiveTimer
       timeSessions: [TimeSession!]!
       timeSummary: TimeSummary!
+      calendarColorRules: [CalendarColorRule!]!
     }
 
     type Mutation {
@@ -154,6 +160,16 @@ export const schema = createSchema<GraphQLContext>({
 
       saveTimer: TimeSession!
       cancelTimer: Boolean!
+      createCalendarColorRule(
+        input: CreateCalendarColorRuleInput!
+      ): CalendarColorRule!
+
+      updateCalendarColorRule(
+        id: ID!
+        input: UpdateCalendarColorRuleInput!
+      ): CalendarColorRule!
+
+      deleteCalendarColorRule(id: ID!): Boolean!
     }
 
     type TimeSummary {
@@ -161,6 +177,24 @@ export const schema = createSchema<GraphQLContext>({
       stopwatchSeconds: Int!
       manualSeconds: Int!
       totalSeconds: Int!
+    }
+
+    type CalendarColorRule {
+      id: ID!
+      thresholdMinutes: Int!
+      color: String!
+      createdAt: String!
+      updatedAt: String!
+    }
+
+    input CreateCalendarColorRuleInput {
+      thresholdMinutes: Int!
+      color: String!
+    }
+
+    input UpdateCalendarColorRuleInput {
+      thresholdMinutes: Int
+      color: String
     }
   `,
 
@@ -175,6 +209,32 @@ export const schema = createSchema<GraphQLContext>({
       ...scheduledTaskResolvers.Query,
       ...timeSessionResolvers.Query,
       ...activeTimerResolvers.Query,
+      ...calendarColorRuleResolvers.Query,
+
+      allScheduledTasks: async (
+        _parent: unknown,
+        _args: unknown,
+        context: GraphQLContext,
+      ) => {
+        const user = requireUser(context);
+
+        const scheduledTasks = await context.prisma.scheduledTask.findMany({
+          where: {
+            userId: user.id,
+          },
+          include: {
+            task: true,
+          },
+          orderBy: [{ date: 'desc' }, { createdAt: 'asc' }],
+        });
+
+        return scheduledTasks.map((scheduledTask) => ({
+          id: scheduledTask.id,
+          date: scheduledTask.date.toISOString().slice(0, 10),
+          task: scheduledTask.task,
+        }));
+      },
+      
     },
 
     Mutation: {
@@ -183,6 +243,7 @@ export const schema = createSchema<GraphQLContext>({
       ...scheduledTaskResolvers.Mutation,
       ...timeSessionResolvers.Mutation,
       ...activeTimerResolvers.Mutation,
+      ...calendarColorRuleResolvers.Mutation,
     },
 
     Task: {
@@ -224,8 +285,7 @@ export const schema = createSchema<GraphQLContext>({
     },
 
     ActiveTimer: {
-      startedAt: (timer: { startedAt: Date }) =>
-        timer.startedAt.toISOString(),
+      startedAt: (timer: { startedAt: Date }) => timer.startedAt.toISOString(),
 
       runStartedAt: (timer: { runStartedAt: Date | null }) =>
         timer.runStartedAt?.toISOString() ?? null,
@@ -233,11 +293,9 @@ export const schema = createSchema<GraphQLContext>({
       endsAt: (timer: { endsAt: Date | null }) =>
         timer.endsAt?.toISOString() ?? null,
 
-      createdAt: (timer: { createdAt: Date }) =>
-        timer.createdAt.toISOString(),
+      createdAt: (timer: { createdAt: Date }) => timer.createdAt.toISOString(),
 
-      updatedAt: (timer: { updatedAt: Date }) =>
-        timer.updatedAt.toISOString(),
+      updatedAt: (timer: { updatedAt: Date }) => timer.updatedAt.toISOString(),
     },
   },
 });

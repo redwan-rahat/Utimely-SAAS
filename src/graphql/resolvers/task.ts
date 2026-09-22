@@ -92,11 +92,37 @@ export const taskResolvers = {
         throw new Error('Progress must be between 0 and 100');
       }
 
+      const nextProgress =
+        args.input.progress !== undefined
+          ? args.input.progress
+          : existingTask.progress;
+
+      let nextStatus = args.input.status ?? existingTask.status;
+
+      // 100% progress always means completed
+      if (nextProgress === 100) {
+        nextStatus = TaskStatus.COMPLETED;
+      }
+
+      // If a completed task is reduced below 100%,
+      // move it back to in progress.
+      else if (
+        args.input.progress !== undefined &&
+        existingTask.status === TaskStatus.COMPLETED &&
+        args.input.status === undefined &&
+        nextProgress < 100
+      ) {
+        nextStatus = TaskStatus.IN_PROGRESS;
+      }
+
       return context.prisma.task.update({
         where: {
           id: args.id,
         },
-        data: args.input,
+        data: {
+          ...args.input,
+          status: nextStatus,
+        },
       });
     },
 

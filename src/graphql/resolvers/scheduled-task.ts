@@ -123,6 +123,31 @@ export const scheduledTaskResolvers = {
   });
     },
 
+    allScheduledTasks: async (
+  _parent: unknown,
+  _args: unknown,
+  context: GraphQLContext,
+) => {
+  const user = requireUser(context);
+
+  return context.prisma.scheduledTask.findMany({
+    where: {
+      userId: user.id,
+    },
+    include: {
+      task: true,
+    },
+    orderBy: [
+      {
+        date: 'desc',
+      },
+      {
+        createdAt: 'asc',
+      },
+    ],
+  });
+    },
+
   },
 
   Mutation: {

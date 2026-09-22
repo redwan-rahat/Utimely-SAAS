@@ -42,6 +42,28 @@ function CalendarIcon() {
   );
 }
 
+/* Today's Tasks */
+function TodayTasksIcon() {
+  return (
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <rect x="4" y="3" width="16" height="18" rx="2" />
+      <path d="M8 8h8" />
+      <path d="M8 12l1.5 1.5L12 11" />
+      <path d="M8 16h8" />
+    </svg>
+  );
+}
+
+/* All Tasks */
 function TasksIcon() {
   return (
     <svg
@@ -56,24 +78,6 @@ function TasksIcon() {
     >
       <path d="M9 11l2 2 4-4" />
       <path d="M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z" />
-    </svg>
-  );
-}
-
-function ScheduledIcon() {
-  return (
-    <svg
-      width="20"
-      height="20"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <circle cx="12" cy="12" r="9" />
-      <path d="M12 7v5l3 2" />
     </svg>
   );
 }
@@ -136,36 +140,46 @@ function LogoutIcon() {
   );
 }
 
-const navigation = [
-  {
-    name: 'Dashboard',
-    href: '/dashboard',
-    icon: DashboardIcon,
-  },
-  {
-    name: 'Calendar',
-    href: '/dashboard/calendar',
-    icon: CalendarIcon,
-  },
-  {
-    name: 'Tasks',
-    href: '/dashboard/tasks',
-    icon: TasksIcon,
-  },
-  {
-    name: 'Scheduled Task',
-    href: '/dashboard/scheduled-task',
-    icon: ScheduledIcon,
-  },
-  {
-    name: 'Analytics',
-    href: '/dashboard/analytics',
-    icon: AnalyticsIcon,
-  },
-];
-
 export function Sidebar() {
   const pathname = usePathname();
+
+  /*
+   * Get today's date in Bangladesh time.
+   *
+   * Example:
+   * 2026-09-22
+   */
+  const today = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Dhaka',
+  }).format(new Date());
+
+  const navigation = [
+    {
+      name: 'Dashboard',
+      href: '/dashboard',
+      icon: DashboardIcon,
+    },
+    {
+      name: 'Calendar',
+      href: '/dashboard/calendar',
+      icon: CalendarIcon,
+    },
+    {
+      name: "Today's Tasks",
+      href: `/dashboard/calendar/${today}`,
+      icon: TodayTasksIcon,
+    },
+    {
+      name: 'All Tasks',
+      href: '/dashboard/tasks',
+      icon: TasksIcon,
+    },
+    {
+      name: 'Analytics',
+      href: '/dashboard/analytics',
+      icon: AnalyticsIcon,
+    },
+  ];
 
   const handleLogout = async () => {
     await authClient.signOut();
@@ -180,7 +194,10 @@ export function Sidebar() {
           href="/dashboard"
           className="text-2xl font-semibold tracking-tight text-[var(--color-text)]"
         >
-          Uti<span className="text-[var(--color-primary)]">mely</span>
+          Uti
+          <span className="text-[var(--color-primary)]">
+            mely
+          </span>
         </Link>
       </div>
 
@@ -190,10 +207,16 @@ export function Sidebar() {
           {navigation.map((item) => {
             const Icon = item.icon;
 
+            /*
+             * Calendar should only be active on the
+             * main calendar page.
+             */
             const isActive =
-              item.href === '/dashboard'
-                ? pathname === '/dashboard'
-                : pathname.startsWith(item.href);
+              item.name === 'Calendar'
+                ? pathname === '/dashboard/calendar'
+                : item.name === 'Dashboard'
+                  ? pathname === '/dashboard'
+                  : pathname === item.href;
 
             return (
               <Link

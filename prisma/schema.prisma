@@ -12,6 +12,8 @@ enum TaskStatus {
   PLANNED
   IN_PROGRESS
   COMPLETED
+  PAUSED
+  CANCELLED
 }
 
 enum TimeSessionType {
@@ -42,6 +44,7 @@ model User {
   scheduledTasks ScheduledTask[]
   timeSessions   TimeSession[]
   activeTimer    ActiveTimer?
+  calendarColorRules CalendarColorRule[]
 }
 
 model Session {
@@ -203,4 +206,19 @@ model ActiveTimer {
   task Task? @relation(fields: [taskId], references: [id], onDelete: SetNull)
 
   @@index([taskId])
+}
+
+
+model CalendarColorRule {
+  id              String   @id @default(cuid())
+  userId          String
+  thresholdMinutes Int
+  color           String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, thresholdMinutes])
+  @@index([userId])
 }
