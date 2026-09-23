@@ -1,6 +1,13 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import {
+  ChevronLeft,
+  ChevronRight,
+  Pencil,
+  SlidersHorizontal,
+  Trash2,
+} from 'lucide-react';
 import { graphqlRequest } from '@/lib/graphql-client';
 
 type TimeSession = {
@@ -23,12 +30,7 @@ type CalendarFilter = {
 
 type CalendarTask = {
   id: string;
-  status:
-    | 'PLANNED'
-    | 'IN_PROGRESS'
-    | 'COMPLETED'
-    | 'PAUSED'
-    | 'CANCELLED';
+  status: 'PLANNED' | 'IN_PROGRESS' | 'COMPLETED' | 'PAUSED' | 'CANCELLED';
 };
 
 type MonthlyScheduledTask = {
@@ -36,12 +38,7 @@ type MonthlyScheduledTask = {
   task: {
     id: string;
     title: string;
-    status:
-      | 'PLANNED'
-      | 'IN_PROGRESS'
-      | 'COMPLETED'
-      | 'PAUSED'
-      | 'CANCELLED';
+    status: 'PLANNED' | 'IN_PROGRESS' | 'COMPLETED' | 'PAUSED' | 'CANCELLED';
     progress: number;
   };
 };
@@ -154,38 +151,28 @@ const MONTH_NAMES = [
   'December',
 ];
 
-const WEEKDAYS = [
-  'Mon',
-  'Tue',
-  'Wed',
-  'Thu',
-  'Fri',
-  'Sat',
-  'Sun',
-];
+const WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+const DEFAULT_TIME_FILTERS = [
+  { thresholdMinutes: 60, color: '#D4D4D8' },
+  { thresholdMinutes: 120, color: '#EF4444' },
+  { thresholdMinutes: 180, color: '#8B5CF6' },
+  { thresholdMinutes: 240, color: '#3B82F6' },
+  { thresholdMinutes: 300, color: '#86EFAC' },
+] as const;
 
 function getDateKey(date: Date) {
   const year = date.getFullYear();
 
-  const month = String(
-    date.getMonth() + 1,
-  ).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0');
 
-  const day = String(
-    date.getDate(),
-  ).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
 
   return `${year}-${month}-${day}`;
 }
 
-function formatDateKey(
-  year: number,
-  month: number,
-  day: number,
-) {
-  return `${year}-${String(
-    month + 1,
-  ).padStart(2, '0')}-${String(day).padStart(
+function formatDateKey(year: number, month: number, day: number) {
+  return `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(
     2,
     '0',
   )}`;
@@ -207,36 +194,20 @@ function formatMinutes(minutes: number) {
   return `${hours}h ${remaining}m`;
 }
 
-function getCalendarDays(
-  year: number,
-  month: number,
-) {
+function getCalendarDays(year: number, month: number) {
   const firstDay = new Date(year, month, 1);
 
-  const startingDay =
-    (firstDay.getDay() + 6) % 7;
+  const startingDay = (firstDay.getDay() + 6) % 7;
 
-  const daysInMonth = new Date(
-    year,
-    month + 1,
-    0,
-  ).getDate();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
 
   const days: (number | null)[] = [];
 
-  for (
-    let i = 0;
-    i < startingDay;
-    i++
-  ) {
+  for (let i = 0; i < startingDay; i++) {
     days.push(null);
   }
 
-  for (
-    let day = 1;
-    day <= daysInMonth;
-    day++
-  ) {
+  for (let day = 1; day <= daysInMonth; day++) {
     days.push(day);
   }
 
@@ -245,19 +216,18 @@ function getCalendarDays(
 
 function getApplicableFilter(
   minutes: number,
-  filters: CalendarFilter[],
+  filters: Array<{
+    thresholdMinutes: number;
+    color: string;
+  }>,
 ) {
-  let applicable: CalendarFilter | null =
-    null;
+  let applicable: CalendarFilter | null = null;
 
   for (const filter of filters) {
-    if (
-      minutes >= filter.thresholdMinutes
-    ) {
+    if (minutes >= filter.thresholdMinutes) {
       if (
         !applicable ||
-        filter.thresholdMinutes >
-          applicable.thresholdMinutes
+        filter.thresholdMinutes > applicable.thresholdMinutes
       ) {
         applicable = filter;
       }
@@ -270,126 +240,81 @@ function getApplicableFilter(
 export default function CalendarPage() {
   const today = new Date();
 
-  const [currentDate, setCurrentDate] =
-    useState(
-      new Date(
-        today.getFullYear(),
-        today.getMonth(),
-        1,
-      ),
-    );
+  const [currentDate, setCurrentDate] = useState(
+    new Date(today.getFullYear(), today.getMonth(), 1),
+  );
 
-  const [sessions, setSessions] = useState<
-    TimeSession[]
-  >([]);
+  const [sessions, setSessions] = useState<TimeSession[]>([]);
 
-  const [tasks, setTasks] = useState<
-    CalendarTask[]
-  >([]);
+  const [tasks, setTasks] = useState<CalendarTask[]>([]);
 
-  const [filters, setFilters] = useState<
-    CalendarFilter[]
-  >([]);
+  const [filters, setFilters] = useState<CalendarFilter[]>([]);
 
-  const [
-    scheduledTasks,
-    setScheduledTasks,
-  ] = useState<MonthlyScheduledTask[]>(
+  const [scheduledTasks, setScheduledTasks] = useState<MonthlyScheduledTask[]>(
     [],
   );
 
-  const [loading, setLoading] =
-    useState(true);
+  const [loading, setLoading] = useState(true);
 
   const [error, setError] = useState('');
 
-  const [
-    selectedFilterId,
-    setSelectedFilterId,
-  ] = useState<string | null>(null);
+  const [selectedFilterId, setSelectedFilterId] = useState<string | null>(null);
 
-  const [showFilters, setShowFilters] =
-    useState(false);
+  const [showFilters, setShowFilters] = useState(false);
 
-  const [
-    showFilterForm,
-    setShowFilterForm,
-  ] = useState(false);
+  const [showFilterForm, setShowFilterForm] = useState(false);
 
-  const [
-    editingFilterId,
-    setEditingFilterId,
-  ] = useState<string | null>(null);
+  const [editingFilterId, setEditingFilterId] = useState<string | null>(null);
 
-  const [filterHours, setFilterHours] =
-    useState('');
+  const [filterHours, setFilterHours] = useState('');
 
-  const [filterColor, setFilterColor] =
-    useState('#6D5DFB');
+  const [filterColor, setFilterColor] = useState('#6D5DFB');
 
-  const [savingFilter, setSavingFilter] =
-    useState(false);
+  const [savingFilter, setSavingFilter] = useState(false);
 
-  const [
-    deletingFilterId,
-    setDeletingFilterId,
-  ] = useState<string | null>(null);
+  const [deletingFilterId, setDeletingFilterId] = useState<string | null>(null);
 
   async function loadCalendarData() {
     try {
       setLoading(true);
       setError('');
 
-      const year =
-        currentDate.getFullYear();
+      const year = currentDate.getFullYear();
 
-      const month =
-        currentDate.getMonth() + 1;
+      const month = currentDate.getMonth() + 1;
 
-      const [
-        sessionsResult,
-        tasksResult,
-        filtersResult,
-        monthlyTasksResult,
-      ] = await Promise.all([
-        graphqlRequest<{
-          timeSessions: TimeSession[];
-        }>(TIME_SESSIONS_QUERY),
+      const [sessionsResult, tasksResult, filtersResult, monthlyTasksResult] =
+        await Promise.all([
+          graphqlRequest<{
+            timeSessions: TimeSession[];
+          }>(TIME_SESSIONS_QUERY),
 
-        graphqlRequest<{
-          tasks: CalendarTask[];
-        }>(TASKS_QUERY),
+          graphqlRequest<{
+            tasks: CalendarTask[];
+          }>(TASKS_QUERY),
 
-        graphqlRequest<{
-          calendarColorRules: CalendarFilter[];
-        }>(CALENDAR_FILTERS_QUERY),
+          graphqlRequest<{
+            calendarColorRules: CalendarFilter[];
+          }>(CALENDAR_FILTERS_QUERY),
 
-        graphqlRequest<{
-          tasksForMonth: MonthlyScheduledTask[];
-        }>(MONTH_TASKS_QUERY, {
-          year,
-          month,
-        }),
-      ]);
+          graphqlRequest<{
+            tasksForMonth: MonthlyScheduledTask[];
+          }>(MONTH_TASKS_QUERY, {
+            year,
+            month,
+          }),
+        ]);
 
-      setSessions(
-        sessionsResult.timeSessions,
-      );
+      setSessions(sessionsResult.timeSessions);
 
       setTasks(tasksResult.tasks);
 
-      setFilters(
-        filtersResult.calendarColorRules,
-      );
+      setFilters(filtersResult.calendarColorRules);
 
-      setScheduledTasks(
-        monthlyTasksResult.tasksForMonth,
-      );
+      setScheduledTasks(monthlyTasksResult.tasksForMonth);
     } catch (error) {
       setError(
-        error instanceof Error
-          ? error.message
-          : 'Failed to load calendar data',
+        error instanceof Error ? error.message : 'Failed to load calendar data',
       );
     } finally {
       setLoading(false);
@@ -401,10 +326,72 @@ export default function CalendarPage() {
   }, [currentDate]);
 
   const sortedFilters = useMemo(() => {
-    return [...filters].sort(
-      (a, b) =>
-        a.thresholdMinutes -
-        b.thresholdMinutes,
+    return [...filters].sort((a, b) => a.thresholdMinutes - b.thresholdMinutes);
+  }, [filters]);
+
+  // Default filters are frontend-only. Custom filters from the database
+  // override a default filter when they use the same threshold.
+  const displayFilters = useMemo(() => {
+    const rules = new Map<
+      number,
+      {
+        thresholdMinutes: number;
+        color: string;
+        id?: string;
+        isDefault: boolean;
+      }
+    >();
+
+    for (const filter of DEFAULT_TIME_FILTERS) {
+      rules.set(filter.thresholdMinutes, {
+        thresholdMinutes: filter.thresholdMinutes,
+        color: filter.color,
+        isDefault: true,
+      });
+    }
+
+    for (const filter of filters) {
+      rules.set(filter.thresholdMinutes, {
+        thresholdMinutes: filter.thresholdMinutes,
+        color: filter.color,
+        id: filter.id,
+        isDefault: false,
+      });
+    }
+
+    return Array.from(rules.values()).sort(
+      (a, b) => a.thresholdMinutes - b.thresholdMinutes,
+    );
+  }, [filters]);
+
+  // Default calendar colors are frontend-only. If a saved custom
+  // filter uses the same threshold, it overrides the default color.
+  const calendarFilters = useMemo(() => {
+    const rules = new Map<
+      number,
+      {
+        thresholdMinutes: number;
+        color: string;
+      }
+    >(
+      DEFAULT_TIME_FILTERS.map((filter) => [
+        filter.thresholdMinutes,
+        {
+          thresholdMinutes: filter.thresholdMinutes,
+          color: filter.color,
+        },
+      ]),
+    );
+
+    for (const filter of filters) {
+      rules.set(filter.thresholdMinutes, {
+        thresholdMinutes: filter.thresholdMinutes,
+        color: filter.color,
+      });
+    }
+
+    return Array.from(rules.values()).sort(
+      (a, b) => a.thresholdMinutes - b.thresholdMinutes,
     );
   }, [filters]);
 
@@ -419,17 +406,9 @@ export default function CalendarPage() {
    *   CANCELLED tasks is ignored.
    */
   const dailyTotals = useMemo(() => {
-    const totals = new Map<
-      string,
-      number
-    >();
+    const totals = new Map<string, number>();
 
-    const taskStatusMap = new Map(
-      tasks.map((task) => [
-        task.id,
-        task.status,
-      ]),
-    );
+    const taskStatusMap = new Map(tasks.map((task) => [task.id, task.status]));
 
     for (const session of sessions) {
       // Calendar only uses manually logged time.
@@ -442,10 +421,7 @@ export default function CalendarPage() {
         continue;
       }
 
-      const taskStatus =
-        taskStatusMap.get(
-          session.taskId,
-        );
+      const taskStatus = taskStatusMap.get(session.taskId);
 
       // If the task no longer exists,
       // don't count the session.
@@ -455,24 +431,15 @@ export default function CalendarPage() {
 
       // Paused and cancelled tasks do not
       // contribute to calendar time.
-      if (
-        taskStatus === 'PAUSED' ||
-        taskStatus === 'CANCELLED'
-      ) {
+      if (taskStatus === 'PAUSED' || taskStatus === 'CANCELLED') {
         continue;
       }
 
-      const date = new Date(
-        session.startedAt,
-      );
+      const date = new Date(session.startedAt);
 
       const key = getDateKey(date);
 
-      totals.set(
-        key,
-        (totals.get(key) ?? 0) +
-          session.duration,
-      );
+      totals.set(key, (totals.get(key) ?? 0) + session.duration);
     }
 
     return totals;
@@ -485,81 +452,52 @@ export default function CalendarPage() {
    * inside calendar cells.
    */
   const tasksByDate = useMemo(() => {
-    const grouped = new Map<
-      string,
-      MonthlyScheduledTask[]
-    >();
+    const grouped = new Map<string, MonthlyScheduledTask[]>();
 
     for (const scheduledTask of scheduledTasks) {
       if (
-        scheduledTask.task.status ===
-          'PAUSED' ||
-        scheduledTask.task.status ===
-          'CANCELLED'
+        scheduledTask.task.status === 'PAUSED' ||
+        scheduledTask.task.status === 'CANCELLED'
       ) {
         continue;
       }
 
       const key = scheduledTask.date;
 
-      const existing =
-        grouped.get(key) ?? [];
+      const existing = grouped.get(key) ?? [];
 
-      grouped.set(key, [
-        ...existing,
-        scheduledTask,
-      ]);
+      grouped.set(key, [...existing, scheduledTask]);
     }
 
     return grouped;
   }, [scheduledTasks]);
 
   const calendarDays = useMemo(
-    () =>
-      getCalendarDays(
-        currentDate.getFullYear(),
-        currentDate.getMonth(),
-      ),
+    () => getCalendarDays(currentDate.getFullYear(), currentDate.getMonth()),
     [currentDate],
   );
 
-  const selectedFilter = filters.find(
+  const selectedFilter = displayFilters.find(
     (filter) =>
-      filter.id === selectedFilterId,
+      (filter.id ?? `default-${filter.thresholdMinutes}`) === selectedFilterId,
   );
 
   function previousMonth() {
     setCurrentDate(
-      (current) =>
-        new Date(
-          current.getFullYear(),
-          current.getMonth() - 1,
-          1,
-        ),
+      (current) => new Date(current.getFullYear(), current.getMonth() - 1, 1),
     );
   }
 
   function nextMonth() {
     setCurrentDate(
-      (current) =>
-        new Date(
-          current.getFullYear(),
-          current.getMonth() + 1,
-          1,
-        ),
+      (current) => new Date(current.getFullYear(), current.getMonth() + 1, 1),
     );
   }
 
   function goToToday() {
     const now = new Date();
 
-    setCurrentDate(
-      new Date(
-        now.getFullYear(),
-        now.getMonth(),
-        1,
-      ),
-    );
+    setCurrentDate(new Date(now.getFullYear(), now.getMonth(), 1));
   }
 
   function openAddFilter() {
@@ -570,16 +508,10 @@ export default function CalendarPage() {
     setError('');
   }
 
-  function openEditFilter(
-    filter: CalendarFilter,
-  ) {
+  function openEditFilter(filter: CalendarFilter) {
     setEditingFilterId(filter.id);
 
-    setFilterHours(
-      String(
-        filter.thresholdMinutes / 60,
-      ),
-    );
+    setFilterHours(String(filter.thresholdMinutes / 60));
 
     setFilterColor(filter.color);
 
@@ -594,39 +526,27 @@ export default function CalendarPage() {
     setFilterColor('#6D5DFB');
   }
 
-  async function handleSaveFilter(
-    event: React.FormEvent<HTMLFormElement>,
-  ) {
+  async function handleSaveFilter(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     const hours = Number(filterHours);
 
-    if (
-      !Number.isInteger(hours) ||
-      hours <= 0
-    ) {
-      setError(
-        'Threshold must be a positive whole number of hours.',
-      );
+    if (!Number.isInteger(hours) || hours <= 0) {
+      setError('Threshold must be a positive whole number of hours.');
 
       return;
     }
 
-    const thresholdMinutes =
-      hours * 60;
+    const thresholdMinutes = hours * 60;
 
-    const duplicateExists =
-      filters.some(
-        (filter) =>
-          filter.id !== editingFilterId &&
-          filter.thresholdMinutes ===
-            thresholdMinutes,
-      );
+    const duplicateExists = filters.some(
+      (filter) =>
+        filter.id !== editingFilterId &&
+        filter.thresholdMinutes === thresholdMinutes,
+    );
 
     if (duplicateExists) {
-      setError(
-        'A filter with this threshold already exists.',
-      );
+      setError('A filter with this threshold already exists.');
 
       return;
     }
@@ -636,46 +556,34 @@ export default function CalendarPage() {
       setError('');
 
       if (editingFilterId) {
-        const result =
-          await graphqlRequest<{
-            updateCalendarColorRule: CalendarFilter;
-          }>(
-            UPDATE_CALENDAR_FILTER_MUTATION,
-            {
-              id: editingFilterId,
-              input: {
-                thresholdMinutes,
-                color: filterColor,
-              },
-            },
-          );
+        const result = await graphqlRequest<{
+          updateCalendarColorRule: CalendarFilter;
+        }>(UPDATE_CALENDAR_FILTER_MUTATION, {
+          id: editingFilterId,
+          input: {
+            thresholdMinutes,
+            color: filterColor,
+          },
+        });
 
         setFilters((current) =>
           current.map((filter) =>
-            filter.id ===
-            editingFilterId
+            filter.id === editingFilterId
               ? result.updateCalendarColorRule
               : filter,
           ),
         );
       } else {
-        const result =
-          await graphqlRequest<{
-            createCalendarColorRule: CalendarFilter;
-          }>(
-            CREATE_CALENDAR_FILTER_MUTATION,
-            {
-              input: {
-                thresholdMinutes,
-                color: filterColor,
-              },
-            },
-          );
+        const result = await graphqlRequest<{
+          createCalendarColorRule: CalendarFilter;
+        }>(CREATE_CALENDAR_FILTER_MUTATION, {
+          input: {
+            thresholdMinutes,
+            color: filterColor,
+          },
+        });
 
-        setFilters((current) => [
-          ...current,
-          result.createCalendarColorRule,
-        ]);
+        setFilters((current) => [...current, result.createCalendarColorRule]);
       }
 
       closeFilterForm();
@@ -692,12 +600,8 @@ export default function CalendarPage() {
     }
   }
 
-  async function handleDeleteFilter(
-    filterId: string,
-  ) {
-    const confirmed = window.confirm(
-      'Delete this time filter?',
-    );
+  async function handleDeleteFilter(filterId: string) {
+    const confirmed = window.confirm('Delete this time filter?');
 
     if (!confirmed) {
       return;
@@ -707,45 +611,30 @@ export default function CalendarPage() {
       setDeletingFilterId(filterId);
       setError('');
 
-      const result =
-        await graphqlRequest<{
-          deleteCalendarColorRule: boolean;
-        }>(
-          DELETE_CALENDAR_FILTER_MUTATION,
-          {
-            id: filterId,
-          },
-        );
+      const result = await graphqlRequest<{
+        deleteCalendarColorRule: boolean;
+      }>(DELETE_CALENDAR_FILTER_MUTATION, {
+        id: filterId,
+      });
 
       if (!result.deleteCalendarColorRule) {
-        throw new Error(
-          'Failed to delete filter',
-        );
+        throw new Error('Failed to delete filter');
       }
 
       setFilters((current) =>
-        current.filter(
-          (filter) =>
-            filter.id !== filterId,
-        ),
+        current.filter((filter) => filter.id !== filterId),
       );
 
-      if (
-        selectedFilterId === filterId
-      ) {
+      if (selectedFilterId === filterId) {
         setSelectedFilterId(null);
       }
 
-      if (
-        editingFilterId === filterId
-      ) {
+      if (editingFilterId === filterId) {
         closeFilterForm();
       }
     } catch (error) {
       setError(
-        error instanceof Error
-          ? error.message
-          : 'Failed to delete filter',
+        error instanceof Error ? error.message : 'Failed to delete filter',
       );
     } finally {
       setDeletingFilterId(null);
@@ -762,28 +651,26 @@ export default function CalendarPage() {
           </p>
 
           <h1 className="text-2xl font-semibold tracking-tight text-[var(--color-text)] sm:text-3xl">
-            {MONTH_NAMES[
-              currentDate.getMonth()
-            ]}{' '}
-            {currentDate.getFullYear()}
+            {MONTH_NAMES[currentDate.getMonth()]} {currentDate.getFullYear()}
           </h1>
 
           <p className="mt-2 text-sm text-[var(--color-text-secondary)]">
-            Plan your days and see how much
-            time you spent.
+            Plan your days and see how much time you spent.
           </p>
         </div>
 
         <button
           type="button"
-          onClick={() =>
-            setShowFilters(
-              (value) => !value,
-            )
-          }
-          className="rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-background)] px-4 py-2.5 text-sm font-medium text-[var(--color-text-secondary)] hover:bg-[var(--color-surface)] hover:text-[var(--color-text)]"
+          onClick={() => setShowFilters((value) => !value)}
+          className="flex items-center gap-2 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-2.5 text-[15px] font-medium text-[var(--color-text-secondary)] shadow-sm transition-colors hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text)]"
         >
-          Time Filters
+          <SlidersHorizontal size={17} strokeWidth={1.8} />
+
+          <span className="sm:hidden">{showFilters ? 'Close' : 'Filters'}</span>
+
+          <span className="hidden sm:inline">
+            {showFilters ? 'Close Filters' : 'Time Filters'}
+          </span>
         </button>
       </div>
 
@@ -797,8 +684,10 @@ export default function CalendarPage() {
               </h2>
 
               <p className="mt-1 text-xs text-[var(--color-text-secondary)]">
-                Manage the colors used for daily
-                time totals.
+                Manage custom colors for daily time totals.
+              </p>
+              <p className="mt-2 text-xs text-[var(--color-text-muted)]">
+                Default colors start at 1h and increase through 5h+.
               </p>
             </div>
 
@@ -818,14 +707,11 @@ export default function CalendarPage() {
             >
               <div className="mb-4">
                 <h3 className="text-sm font-semibold text-[var(--color-text)]">
-                  {editingFilterId
-                    ? 'Edit Time Filter'
-                    : 'Add Time Filter'}
+                  {editingFilterId ? 'Edit Time Filter' : 'Add Time Filter'}
                 </h3>
 
                 <p className="mt-1 text-xs text-[var(--color-text-secondary)]">
-                  Set the minimum amount of
-                  tracked time required for this
+                  Set the minimum amount of tracked time required for this
                   color.
                 </p>
               </div>
@@ -846,11 +732,7 @@ export default function CalendarPage() {
                       min="1"
                       step="1"
                       value={filterHours}
-                      onChange={(event) =>
-                        setFilterHours(
-                          event.target.value,
-                        )
-                      }
+                      onChange={(event) => setFilterHours(event.target.value)}
                       placeholder="8"
                       autoFocus
                       className="w-full rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-background)] px-3 py-2 text-sm text-[var(--color-text)] outline-none placeholder:text-[var(--color-text-muted)] focus:border-[var(--color-primary)]"
@@ -874,11 +756,7 @@ export default function CalendarPage() {
                     id="filter-color"
                     type="color"
                     value={filterColor}
-                    onChange={(event) =>
-                      setFilterColor(
-                        event.target.value,
-                      )
-                    }
+                    onChange={(event) => setFilterColor(event.target.value)}
                     className="h-9 w-14 cursor-pointer rounded border border-[var(--color-border)] bg-transparent"
                   />
                 </div>
@@ -886,9 +764,7 @@ export default function CalendarPage() {
                 <div className="flex gap-2">
                   <button
                     type="button"
-                    onClick={
-                      closeFilterForm
-                    }
+                    onClick={closeFilterForm}
                     className="rounded-[var(--radius-md)] border border-[var(--color-border)] px-3 py-2 text-xs font-medium text-[var(--color-text-secondary)] hover:bg-[var(--color-background)]"
                   >
                     Cancel
@@ -896,10 +772,7 @@ export default function CalendarPage() {
 
                   <button
                     type="submit"
-                    disabled={
-                      !filterHours ||
-                      savingFilter
-                    }
+                    disabled={!filterHours || savingFilter}
                     className="rounded-[var(--radius-md)] bg-[var(--color-primary)] px-3 py-2 text-xs font-medium text-white disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     {savingFilter
@@ -916,74 +789,58 @@ export default function CalendarPage() {
           )}
 
           <div className="mt-4 flex flex-wrap gap-2">
-            {sortedFilters.length ===
-            0 ? (
+            {sortedFilters.length === 0 ? (
               <p className="text-xs text-[var(--color-text-muted)]">
-                No time filters yet. Add your
-                first filter above.
+                No custom time filters yet. Add your first filter above.
               </p>
             ) : (
-              sortedFilters.map(
-                (filter) => {
-                  const isDeleting =
-                    deletingFilterId ===
-                    filter.id;
+              sortedFilters.map((filter) => {
+                const isDeleting = deletingFilterId === filter.id;
 
-                  return (
-                    <div
-                      key={filter.id}
-                      className="flex items-center gap-2 rounded-full border border-[var(--color-border)] px-3 py-1.5"
+                return (
+                  <div
+                    key={filter.id}
+                    className="flex items-center gap-2 rounded-full border border-[var(--color-border)] px-3 py-1.5"
+                  >
+                    <span
+                      className="h-2.5 w-2.5 rounded-full"
+                      style={{
+                        backgroundColor: filter.color,
+                      }}
+                    />
+
+                    <span className="text-xs font-medium text-[var(--color-text)]">
+                      {formatMinutes(filter.thresholdMinutes)}+
+                    </span>
+
+                    <button
+                      type="button"
+                      onClick={() => openEditFilter(filter)}
+                      disabled={isDeleting}
+                      className="ml-1 flex h-7 w-7 items-center justify-center rounded-md text-blue-500 transition-colors hover:bg-blue-50 hover:text-blue-600 disabled:cursor-not-allowed disabled:opacity-50"
+                      aria-label="Edit filter"
+                      title="Edit filter"
                     >
-                      <span
-                        className="h-2.5 w-2.5 rounded-full"
-                        style={{
-                          backgroundColor:
-                            filter.color,
-                        }}
-                      />
+                      <Pencil size={15} strokeWidth={2} />
+                    </button>
 
-                      <span className="text-xs font-medium text-[var(--color-text)]">
-                        {formatMinutes(
-                          filter.thresholdMinutes,
-                        )}
-                        +
-                      </span>
-
-                      <button
-                        type="button"
-                        onClick={() =>
-                          openEditFilter(
-                            filter,
-                          )
-                        }
-                        disabled={isDeleting}
-                        className="ml-1 text-xs text-[var(--color-text-muted)] hover:text-[var(--color-text)] disabled:cursor-not-allowed disabled:opacity-50"
-                        aria-label="Edit filter"
-                        title="Edit filter"
-                      >
-                        ✎
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() =>
-                          handleDeleteFilter(
-                            filter.id,
-                          )
-                        }
-                        disabled={isDeleting}
-                        className="text-xs text-[var(--color-text-muted)] hover:text-[var(--color-danger)] disabled:cursor-not-allowed disabled:opacity-50"
-                        aria-label="Delete filter"
-                        title="Delete filter"
-                      >
-                        {isDeleting
-                          ? '...'
-                          : '🗑'}
-                      </button>
-                    </div>
-                  );
-                },
-              )
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteFilter(filter.id)}
+                      disabled={isDeleting}
+                      className="flex h-7 w-7 items-center justify-center rounded-md text-red-500 transition-colors hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-50"
+                      aria-label="Delete filter"
+                      title="Delete filter"
+                    >
+                      {isDeleting ? (
+                        '...'
+                      ) : (
+                        <Trash2 size={15} strokeWidth={2} />
+                      )}
+                    </button>
+                  </div>
+                );
+              })
             )}
           </div>
         </div>
@@ -993,9 +850,7 @@ export default function CalendarPage() {
       <div className="flex items-center gap-2 overflow-x-auto border-b border-[var(--color-border)] pb-px">
         <button
           type="button"
-          onClick={() =>
-            setSelectedFilterId(null)
-          }
+          onClick={() => setSelectedFilterId(null)}
           className={`shrink-0 border-b-2 px-3 pb-3 text-sm font-medium ${
             selectedFilterId === null
               ? 'border-[var(--color-primary)] text-[var(--color-primary)]'
@@ -1005,57 +860,51 @@ export default function CalendarPage() {
           All
         </button>
 
-        {sortedFilters.map((filter) => (
-          <button
-            key={filter.id}
-            type="button"
-            onClick={() =>
-              setSelectedFilterId(
-                selectedFilterId ===
-                  filter.id
-                  ? null
-                  : filter.id,
-              )
-            }
-            className={`flex shrink-0 items-center gap-2 border-b-2 px-3 pb-3 text-sm font-medium ${
-              selectedFilterId ===
-              filter.id
-                ? 'border-[var(--color-primary)] text-[var(--color-text)]'
-                : 'border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text)]'
-            }`}
-          >
-            <span
-              className="h-2.5 w-2.5 rounded-full"
-              style={{
-                backgroundColor:
-                  filter.color,
-              }}
-            />
+        {displayFilters.map((filter) => {
+          const filterKey = filter.id ?? `default-${filter.thresholdMinutes}`;
+          const isSelected = selectedFilterId === filterKey;
 
-            {formatMinutes(
-              filter.thresholdMinutes,
-            )}
-            +
-          </button>
-        ))}
+          return (
+            <button
+              key={filterKey}
+              type="button"
+              onClick={() => setSelectedFilterId(isSelected ? null : filterKey)}
+              className={`flex shrink-0 items-center gap-2 border-b-2 px-3 pb-3 text-sm font-medium ${
+                isSelected
+                  ? 'border-[var(--color-primary)] text-[var(--color-primary)]'
+                  : 'border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text)]'
+              }`}
+            >
+              <span
+                className="h-2.5 w-2.5 rounded-full"
+                style={{
+                  backgroundColor: filter.color,
+                }}
+              />
+              {formatMinutes(filter.thresholdMinutes)}+
+            </button>
+          );
+        })}
       </div>
 
       {/* CALENDAR */}
       <div className="overflow-hidden rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-background)]">
         {/* MONTH CONTROLS */}
-        <div className="flex items-center justify-between border-b border-[var(--color-border)] px-5 py-4">
+        <div className="flex items-center justify-between border-b border-[var(--color-border)] px-4 py-3 sm:px-5 sm:py-4">
           <button
             type="button"
             onClick={previousMonth}
-            className="rounded-[var(--radius-sm)] px-3 py-1.5 text-sm text-[var(--color-text-secondary)] hover:bg-[var(--color-surface)]"
+            className="flex items-center gap-2 rounded-[var(--radius-md)] px-2.5 py-2 text-[15px] font-medium text-[var(--color-text-secondary)] transition-colors hover:bg-[var(--color-surface)] hover:text-[var(--color-text)]"
+            aria-label="Previous month"
           >
-            ←
+            <ChevronLeft size={19} strokeWidth={1.8} />
+            <span>{MONTH_NAMES[(currentDate.getMonth() + 11) % 12]}</span>
           </button>
 
           <button
             type="button"
             onClick={goToToday}
-            className="rounded-[var(--radius-md)] border border-[var(--color-border)] px-3 py-1.5 text-xs font-medium text-[var(--color-text-secondary)] hover:bg-[var(--color-surface)]"
+            className="hidden rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-[14px] font-medium text-[var(--color-text-secondary)] shadow-sm transition-colors hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text)] sm:block"
           >
             Show Today
           </button>
@@ -1063,9 +912,11 @@ export default function CalendarPage() {
           <button
             type="button"
             onClick={nextMonth}
-            className="rounded-[var(--radius-sm)] px-3 py-1.5 text-sm text-[var(--color-text-secondary)] hover:bg-[var(--color-surface)]"
+            className="flex items-center gap-2 rounded-[var(--radius-md)] px-2.5 py-2 text-[15px] font-medium text-[var(--color-text-secondary)] transition-colors hover:bg-[var(--color-surface)] hover:text-[var(--color-text)]"
+            aria-label="Next month"
           >
-            →
+            <span>{MONTH_NAMES[(currentDate.getMonth() + 1) % 12]}</span>
+            <ChevronRight size={19} strokeWidth={1.8} />
           </button>
         </div>
 
@@ -1074,7 +925,7 @@ export default function CalendarPage() {
           {WEEKDAYS.map((day) => (
             <div
               key={day}
-              className="px-3 py-3 text-center text-xs font-medium text-[var(--color-text-muted)]"
+              className="px-1.5 py-2 text-center text-[10px] font-medium text-[var(--color-text-muted)] sm:px-3 sm:py-3 sm:text-xs"
             >
               {day}
             </div>
@@ -1088,150 +939,130 @@ export default function CalendarPage() {
           </div>
         ) : (
           <div className="grid grid-cols-7">
-            {calendarDays.map(
-              (day, index) => {
-                if (day === null) {
-                  return (
-                    <div
-                      key={`empty-${index}`}
-                      className="min-h-[150px] border-b border-r border-[var(--color-border)] bg-[var(--color-surface)]"
-                    />
-                  );
-                }
-
-                const dateKey =
-                  formatDateKey(
-                    currentDate.getFullYear(),
-                    currentDate.getMonth(),
-                    day,
-                  );
-
-                const totalSeconds =
-                  dailyTotals.get(
-                    dateKey,
-                  ) ?? 0;
-
-                const totalMinutes =
-                  Math.floor(
-                    totalSeconds / 60,
-                  );
-
-                const applicableFilter =
-                  getApplicableFilter(
-                    totalMinutes,
-                    sortedFilters,
-                  );
-
-                const matchesSelectedFilter =
-                  !selectedFilter ||
-                  totalMinutes >=
-                    selectedFilter.thresholdMinutes;
-
-                const date = new Date(
-                  currentDate.getFullYear(),
-                  currentDate.getMonth(),
-                  day,
-                );
-
-                const isToday =
-                  getDateKey(date) ===
-                  getDateKey(today);
-
-                const dayTasks =
-                  tasksByDate.get(
-                    dateKey,
-                  ) ?? [];
-
+            {calendarDays.map((day, index) => {
+              if (day === null) {
                 return (
-                  <button
-                    key={dateKey}
-                    type="button"
-                    disabled={
-                      !matchesSelectedFilter
-                    }
-                    onClick={() => {
-                      window.location.href = `/dashboard/calendar/${dateKey}`;
-                    }}
-                    style={
-                      applicableFilter
-                        ? {
-                            backgroundColor:
-                              applicableFilter.color,
-                          }
-                        : undefined
-                    }
-                    className={`group relative flex min-h-[150px] flex-col border-b border-r border-[var(--color-border)] p-3 text-left transition-all ${
-                      matchesSelectedFilter
-                        ? 'hover:brightness-95'
-                        : 'cursor-not-allowed opacity-25'
-                    }`}
-                  >
-                    {/* DAY HEADER */}
-                    <div className="flex items-start justify-between gap-2">
-                      {/* DATE */}
-                      <span
-                        className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-sm font-medium ${
-                          isToday
-                            ? 'bg-[var(--color-primary)] text-white'
+                  <div
+                    key={`empty-${index}`}
+                    className="min-h-[90px] border-b border-r border-[var(--color-border)] bg-[var(--color-surface)] sm:min-h-[160px]"
+                  />
+                );
+              }
+
+              const dateKey = formatDateKey(
+                currentDate.getFullYear(),
+                currentDate.getMonth(),
+                day,
+              );
+
+              const totalSeconds = dailyTotals.get(dateKey) ?? 0;
+
+              const totalMinutes = Math.floor(totalSeconds / 60);
+
+              const applicableFilter = getApplicableFilter(
+                totalMinutes,
+                calendarFilters,
+              );
+
+              const matchesSelectedFilter =
+                !selectedFilter ||
+                totalMinutes >= selectedFilter.thresholdMinutes;
+
+              const date = new Date(
+                currentDate.getFullYear(),
+                currentDate.getMonth(),
+                day,
+              );
+
+              const isToday = getDateKey(date) === getDateKey(today);
+
+              const dayTasks = tasksByDate.get(dateKey) ?? [];
+
+              return (
+                <button
+                  key={dateKey}
+                  type="button"
+                  disabled={!matchesSelectedFilter}
+                  onClick={() => {
+                    window.location.href = `/dashboard/calendar/${dateKey}`;
+                  }}
+                  style={
+                    applicableFilter
+                      ? {
+                          backgroundColor: applicableFilter.color,
+                        }
+                      : undefined
+                  }
+                  className={`group relative flex min-h-[92px] flex-col gap-2 border-b border-r border-[var(--color-border)] p-1.5 text-left transition-all sm:min-h-[160px] sm:p-3 ${
+                    matchesSelectedFilter
+                      ? 'hover:brightness-95'
+                      : 'cursor-not-allowed opacity-25'
+                  }`}
+                >
+                  {/* DAY HEADER */}
+                  <div className="flex flex-col md:flex-row  items-start justify-between gap-4 md:gap-2">
+                    {/* DATE */}
+                    <span
+                      className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[11px] font-medium sm:h-7 sm:w-7 sm:text-sm ${
+                        isToday
+                          ? 'bg-[var(--color-primary)] text-white'
+                          : applicableFilter
+                            ? 'bg-white/90 text-[var(--color-text)] shadow-sm backdrop-blur-sm'
                             : 'text-[var(--color-text)]'
+                      }`}
+                    >
+                      {day}
+                    </span>
+
+                    {/* TOTAL MANUAL TIME */}
+                    {totalMinutes > 0 && (
+                      <span
+                        className={`rounded-md px-1.5 py-0.5 text-[10px] font-semibold sm:px-2 sm:py-1 sm:text-xs ${
+                          applicableFilter
+                            ? 'bg-white/90 text-[var(--color-text)] shadow-sm backdrop-blur-sm'
+                            : 'text-[var(--color-text-secondary)]'
                         }`}
                       >
-                        {day}
+                        {formatMinutes(totalMinutes)}
                       </span>
+                    )}
+                  </div>
 
-                      {/* TOTAL MANUAL TIME */}
-                      {totalMinutes > 0 && (
-                        <span className="pt-1 text-xs font-medium text-[var(--color-text-secondary)]">
-                          {formatMinutes(
-                            totalMinutes,
-                          )}
-                        </span>
+                  {/* TASKS - hidden on phones to keep the calendar compact */}
+                  {/* TASKS - show max 2 tasks */}
+                  {dayTasks.length > 0 && (
+                    <div className="mt-3 hidden min-h-0 flex-1 flex-col gap-1.5 sm:flex">
+                      {dayTasks.slice(0, 2).map((scheduledTask) => (
+                        <div
+                          key={scheduledTask.task.id}
+                          className={`truncate rounded-md px-2 py-1.5 text-xs shadow-sm ${
+                            applicableFilter
+                              ? 'bg-white/90 text-[var(--color-text-secondary)] backdrop-blur-sm'
+                              : 'bg-white/70 text-[var(--color-text-secondary)]'
+                          }`}
+                        >
+                          <span className="mr-1.5 inline-block h-1.5 w-1.5 rounded-full bg-[var(--color-primary)]" />
+
+                          {scheduledTask.task.title}
+                        </div>
+                      ))}
+
+                      {dayTasks.length > 2 && (
+                        <div
+                          className={`rounded-md px-2 py-1 text-[10px] font-medium ${
+                            applicableFilter
+                              ? 'bg-white/80 text-[var(--color-text-secondary)]'
+                              : 'text-[var(--color-text-muted)]'
+                          }`}
+                        >
+                          +{dayTasks.length - 2}
+                        </div>
                       )}
                     </div>
-
-                    {/* TASKS */}
-                    {dayTasks.length > 0 && (
-                      <div className="mt-3 flex min-h-0 flex-1 flex-col gap-1.5">
-                        {dayTasks
-                          .slice(0, 4)
-                          .map(
-                            (
-                              scheduledTask,
-                            ) => (
-                              <div
-                                key={
-                                  scheduledTask
-                                    .task
-                                    .id
-                                }
-                                className="truncate rounded-md bg-white/70 px-2 py-1.5 text-xs text-[var(--color-text-secondary)]"
-                              >
-                                <span className="mr-1.5 inline-block h-1.5 w-1.5 rounded-full bg-[var(--color-primary)]" />
-
-                                {
-                                  scheduledTask
-                                    .task
-                                    .title
-                                }
-                              </div>
-                            ),
-                          )}
-
-                        {dayTasks.length >
-                          4 && (
-                          <div className="px-2 text-[10px] font-medium text-[var(--color-text-muted)]">
-                            +
-                            {dayTasks.length -
-                              4}{' '}
-                            more
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </button>
-                );
-              },
-            )}
+                  )}
+                </button>
+              );
+            })}
           </div>
         )}
       </div>

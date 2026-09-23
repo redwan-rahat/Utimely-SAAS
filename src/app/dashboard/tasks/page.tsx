@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import { LuPencil, LuPlus, LuRefreshCw, LuTrash2 } from 'react-icons/lu';
 import { graphqlRequest } from '@/lib/graphql-client';
 import TaskCard from '@/app/components/tasks/TaskCard';
 
@@ -936,7 +937,7 @@ export default function TasksPage() {
     showAddButton = false,
   ) {
     return (
-      <div className="rounded-[var(--radius-lg)] border border-dashed border-[var(--color-border)] px-6 py-12 text-center">
+      <div className="rounded-[var(--radius-lg)] border border-dashed border-[var(--color-border)] bg-[var(--color-surface)] px-6 py-12 text-center shadow-[0_2px_10px_rgba(0,0,0,0.04)]">
         <p className="text-sm text-[var(--color-text-secondary)]">
           {message}
         </p>
@@ -945,7 +946,7 @@ export default function TasksPage() {
           <button
             type="button"
             onClick={openCreateTask}
-            className="mt-4 text-sm font-medium text-[var(--color-primary)] hover:underline"
+            className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-[var(--color-primary)] transition-colors hover:text-[var(--color-primary-hover)]"
           >
             Add your first task
           </button>
@@ -960,7 +961,7 @@ export default function TasksPage() {
 
   if (loading) {
     return (
-      <div className="py-20 text-center text-sm text-[var(--color-text-secondary)]">
+      <div className="rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)] py-20 text-center text-sm text-[var(--color-text-secondary)] shadow-[0_2px_10px_rgba(0,0,0,0.04)]">
         Loading tasks...
       </div>
     );
@@ -995,8 +996,13 @@ export default function TasksPage() {
           type="button"
           onClick={() => loadData(true)}
           disabled={refreshing}
-          className="shrink-0 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-background)] px-4 py-2.5 text-sm font-medium text-[var(--color-text)] hover:bg-[var(--color-surface)] disabled:opacity-50"
+          className="inline-flex shrink-0 items-center gap-2 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-2.5 text-sm font-medium text-[var(--color-text-secondary)] shadow-sm transition-colors hover:border-[var(--color-border-hover)] hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text)] disabled:cursor-not-allowed disabled:opacity-50"
         >
+          <LuRefreshCw
+            size={16}
+            strokeWidth={1.8}
+            className={refreshing ? 'animate-spin' : ''}
+          />
           {refreshing
             ? 'Refreshing...'
             : 'Refresh'}
@@ -1008,7 +1014,7 @@ export default function TasksPage() {
       =================================================== */}
 
       {error && (
-        <div className="rounded-[var(--radius-md)] border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+        <div className="rounded-[var(--radius-md)] border border-red-200 bg-red-50 px-4 py-3 text-sm text-[var(--color-danger)] shadow-sm">
           {error}
         </div>
       )}
@@ -1060,9 +1066,10 @@ export default function TasksPage() {
             <button
               type="button"
               onClick={openCreateTask}
-              className="ml-auto mb-1 shrink-0 rounded-[var(--radius-md)] bg-[var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[var(--color-primary-hover)]"
+              className="ml-auto mb-1 inline-flex shrink-0 items-center gap-1.5 rounded-[var(--radius-md)] bg-[var(--color-primary)] px-4 py-2.5 text-sm font-medium text-white shadow-sm transition-colors hover:bg-[var(--color-primary-hover)]"
             >
-              + Add Task
+              <LuPlus size={15} strokeWidth={1.9} />
+              Add Task
             </button>
           </div>
 
@@ -1073,7 +1080,7 @@ export default function TasksPage() {
           {showCreateTask && (
             <form
               onSubmit={handleCreateTask}
-              className="mb-6 rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-background)] p-5"
+              className="mb-6 rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)] p-5 shadow-[0_2px_10px_rgba(0,0,0,0.04)]"
             >
               <div className="space-y-4">
                 <input
@@ -1086,7 +1093,7 @@ export default function TasksPage() {
                   }
                   placeholder="Task name"
                   autoFocus
-                  className="w-full rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-background)] px-3 py-2.5 text-sm text-[var(--color-text)] outline-none placeholder:text-[var(--color-text-muted)] focus:border-[var(--color-primary)]"
+                  className="w-full rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2.5 text-sm text-[var(--color-text)] outline-none transition-colors placeholder:text-[var(--color-text-muted)] focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary-light)]"
                 />
 
                 <textarea
@@ -1098,7 +1105,7 @@ export default function TasksPage() {
                   }
                   placeholder="Description"
                   rows={3}
-                  className="w-full resize-none rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-background)] px-3 py-2.5 text-sm text-[var(--color-text)] outline-none placeholder:text-[var(--color-text-muted)] focus:border-[var(--color-primary)]"
+                  className="w-full resize-none rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2.5 text-sm text-[var(--color-text)] outline-none transition-colors placeholder:text-[var(--color-text-muted)] focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary-light)]"
                 />
 
                 <div className="flex justify-end gap-2">
@@ -1107,7 +1114,7 @@ export default function TasksPage() {
                     onClick={
                       closeCreateTask
                     }
-                    className="rounded-[var(--radius-md)] border border-[var(--color-border)] px-4 py-2 text-sm text-[var(--color-text)] hover:bg-[var(--color-surface)]"
+                    className="rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-2.5 text-sm font-medium text-[var(--color-text-secondary)] shadow-sm transition-colors hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text)]"
                   >
                     Cancel
                   </button>
@@ -1118,7 +1125,7 @@ export default function TasksPage() {
                       !taskTitle.trim() ||
                       creatingTask
                     }
-                    className="rounded-[var(--radius-md)] bg-[var(--color-primary)] px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+                    className="rounded-[var(--radius-md)] bg-[var(--color-primary)] px-4 py-2.5 text-sm font-medium text-white shadow-sm transition-colors hover:bg-[var(--color-primary-hover)] disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     {creatingTask
                       ? 'Adding...'
@@ -1300,7 +1307,7 @@ export default function TasksPage() {
         ================================================= */}
 
         <aside className="lg:sticky lg:top-6">
-          <div className="rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-background)] p-5">
+          <div className="rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)] p-5 shadow-[0_2px_10px_rgba(0,0,0,0.04)]">
             {/* =============================================
                 TAG HEADER
             ============================================= */}
@@ -1323,9 +1330,9 @@ export default function TasksPage() {
                     (value) => !value,
                   )
                 }
-                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[var(--radius-sm)] border border-[var(--color-border)] text-lg text-[var(--color-text-secondary)] hover:bg-[var(--color-surface)]"
+                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-secondary)] shadow-sm transition-colors hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text)]"
               >
-                +
+                <LuPlus size={16} strokeWidth={1.8} />
               </button>
             </div>
 
@@ -1348,7 +1355,7 @@ export default function TasksPage() {
                   }
                   placeholder="Tag name"
                   autoFocus
-                  className="w-full rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-background)] px-3 py-2 text-sm text-[var(--color-text)] outline-none placeholder:text-[var(--color-text-muted)] focus:border-[var(--color-primary)]"
+                  className="w-full rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2.5 text-sm text-[var(--color-text)] outline-none transition-colors placeholder:text-[var(--color-text-muted)] focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary-light)]"
                 />
 
                 <div className="flex items-center gap-2">
@@ -1360,7 +1367,7 @@ export default function TasksPage() {
                         event.target.value,
                       )
                     }
-                    className="h-9 w-12 cursor-pointer rounded border border-[var(--color-border)]"
+                    className="h-9 w-12 cursor-pointer rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)]"
                   />
 
                   <span className="text-xs text-[var(--color-text-secondary)]">
@@ -1374,7 +1381,7 @@ export default function TasksPage() {
                     !tagName.trim() ||
                     creatingTag
                   }
-                  className="w-full rounded-[var(--radius-md)] bg-[var(--color-primary)] px-3 py-2 text-xs font-medium text-white disabled:opacity-50"
+                  className="w-full rounded-[var(--radius-md)] bg-[var(--color-primary)] px-3 py-2.5 text-xs font-medium text-white shadow-sm transition-colors hover:bg-[var(--color-primary-hover)] disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {creatingTag
                     ? 'Creating...'
@@ -1432,7 +1439,7 @@ export default function TasksPage() {
                       onSubmit={
                         handleUpdateTag
                       }
-                      className="rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] p-3"
+                      className="rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] p-3 shadow-sm"
                     >
                       <input
                         type="text"
@@ -1461,7 +1468,7 @@ export default function TasksPage() {
                                 .value,
                             )
                           }
-                          className="h-8 w-10 cursor-pointer rounded border border-[var(--color-border)]"
+                          className="h-8 w-10 cursor-pointer rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)]"
                         />
 
                         <span className="text-xs text-[var(--color-text-secondary)]">
@@ -1476,7 +1483,7 @@ export default function TasksPage() {
                             !editingTagName.trim() ||
                             savingTag
                           }
-                          className="flex-1 rounded-[var(--radius-md)] bg-[var(--color-primary)] px-3 py-1.5 text-xs font-medium text-white disabled:opacity-50"
+                          className="flex-1 rounded-[var(--radius-md)] bg-[var(--color-primary)] px-3 py-2 text-xs font-medium text-white shadow-sm transition-colors hover:bg-[var(--color-primary-hover)] disabled:cursor-not-allowed disabled:opacity-50"
                         >
                           {savingTag
                             ? 'Saving...'
@@ -1491,7 +1498,7 @@ export default function TasksPage() {
                           disabled={
                             savingTag
                           }
-                          className="flex-1 rounded-[var(--radius-md)] border border-[var(--color-border)] px-3 py-1.5 text-xs text-[var(--color-text)]"
+                          className="flex-1 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-xs font-medium text-[var(--color-text-secondary)] shadow-sm transition-colors hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text)]"
                         >
                           Cancel
                         </button>
@@ -1507,7 +1514,7 @@ export default function TasksPage() {
                       selectedTagId ===
                       tag.id
                         ? 'bg-[var(--color-primary-light)]'
-                        : 'hover:bg-[var(--color-surface)]'
+                        : 'hover:bg-[var(--color-surface-hover)]'
                     }`}
                   >
                     <button

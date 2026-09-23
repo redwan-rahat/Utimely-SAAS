@@ -1,264 +1,305 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { authClient } from '@/lib/auth-client';
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useState } from "react";
+import {
+  LuLayoutDashboard,
+  LuCalendarDays,
+  LuListChecks,
+  LuLayers3,
+  LuChartNoAxesColumn,
+  LuSettings,
+  LuLogOut,
+  LuMenu,
+  LuX,
+} from "react-icons/lu";
 
-function DashboardIcon() {
-  return (
-    <svg
-      width="20"
-      height="20"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <rect x="3" y="3" width="7" height="7" rx="1" />
-      <rect x="14" y="3" width="7" height="7" rx="1" />
-      <rect x="3" y="14" width="7" height="7" rx="1" />
-      <rect x="14" y="14" width="7" height="7" rx="1" />
-    </svg>
-  );
-}
-
-function CalendarIcon() {
-  return (
-    <svg
-      width="20"
-      height="20"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <rect x="3" y="4" width="18" height="17" rx="2" />
-      <path d="M16 2v4M8 2v4M3 10h18" />
-    </svg>
-  );
-}
-
-/* Today's Tasks */
-function TodayTasksIcon() {
-  return (
-    <svg
-      width="20"
-      height="20"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <rect x="4" y="3" width="16" height="18" rx="2" />
-      <path d="M8 8h8" />
-      <path d="M8 12l1.5 1.5L12 11" />
-      <path d="M8 16h8" />
-    </svg>
-  );
-}
-
-/* All Tasks */
-function TasksIcon() {
-  return (
-    <svg
-      width="20"
-      height="20"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M9 11l2 2 4-4" />
-      <path d="M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z" />
-    </svg>
-  );
-}
-
-function AnalyticsIcon() {
-  return (
-    <svg
-      width="20"
-      height="20"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M4 19V5" />
-      <path d="M4 19h16" />
-      <path d="M8 16v-5" />
-      <path d="M12 16V8" />
-      <path d="M16 16v-9" />
-    </svg>
-  );
-}
-
-function SettingsIcon() {
-  return (
-    <svg
-      width="20"
-      height="20"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z" />
-      <path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-1.7 1.7-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6V20h-2.4v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1L8 17l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.6-1H6V11.6h.8a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9L8 8.6l1.7-1.7.1.1a1.7 1.7 0 0 0 1.9.3 1.7 1.7 0 0 0 1-1.6V5h2.4v.7a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1 1.7 1.7-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.6 1h.8V14h-.8a1.7 1.7 0 0 0-1.6 1z" />
-    </svg>
-  );
-}
-
-function LogoutIcon() {
-  return (
-    <svg
-      width="20"
-      height="20"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M9 4H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h4" />
-      <path d="M14 8l4 4-4 4" />
-      <path d="M18 12H9" />
-    </svg>
-  );
-}
-
-export function Sidebar() {
+export default function Sidebar() {
   const pathname = usePathname();
+  const [mobileOpen, setMobileOpen] = useState(false);
 
-  /*
-   * Get today's date in Bangladesh time.
-   *
-   * Example:
-   * 2026-09-22
-   */
-  const today = new Intl.DateTimeFormat('en-CA', {
-    timeZone: 'Asia/Dhaka',
-  }).format(new Date());
+  const today = new Intl.DateTimeFormat("en-CA").format(new Date());
 
   const navigation = [
     {
-      name: 'Dashboard',
-      href: '/dashboard',
-      icon: DashboardIcon,
+      name: "Dashboard",
+      href: "/dashboard",
+      icon: LuLayoutDashboard,
     },
     {
-      name: 'Calendar',
-      href: '/dashboard/calendar',
-      icon: CalendarIcon,
+      name: "Calendar",
+      href: "/dashboard/calendar",
+      icon: LuCalendarDays,
     },
     {
       name: "Today's Tasks",
       href: `/dashboard/calendar/${today}`,
-      icon: TodayTasksIcon,
+      icon: LuListChecks,
     },
     {
-      name: 'All Tasks',
-      href: '/dashboard/tasks',
-      icon: TasksIcon,
+      name: "All Tasks",
+      href: "/dashboard/tasks",
+      icon: LuLayers3,
     },
     {
-      name: 'Analytics',
-      href: '/dashboard/analytics',
-      icon: AnalyticsIcon,
+      name: "Analytics",
+      href: "/dashboard/analytics",
+      icon: LuChartNoAxesColumn,
     },
   ];
 
-  const handleLogout = async () => {
-    await authClient.signOut();
-    window.location.href = '/auth';
+  const isActive = (item: (typeof navigation)[number]) => {
+    if (item.name === "Dashboard") {
+      return pathname === "/dashboard";
+    }
+
+    if (item.name === "Calendar") {
+      return pathname === "/dashboard/calendar";
+    }
+
+    if (item.name === "Today's Tasks") {
+      return pathname === item.href;
+    }
+
+    return pathname.startsWith(item.href);
   };
 
   return (
-    <aside className="fixed inset-y-0 left-0 z-40 hidden w-64 border-r border-[var(--color-border)] bg-[var(--color-background)] lg:flex lg:flex-col">
-      {/* Logo */}
-      <div className="flex h-20 items-center px-6">
-        <Link
-          href="/dashboard"
-          className="text-2xl font-semibold tracking-tight text-[var(--color-text)]"
-        >
-          Uti
-          <span className="text-[var(--color-primary)]">
-            mely
-          </span>
-        </Link>
-      </div>
-
-      {/* Navigation */}
-      <nav className="flex-1 px-4">
-        <div className="space-y-1">
-          {navigation.map((item) => {
-            const Icon = item.icon;
-
-            /*
-             * Calendar should only be active on the
-             * main calendar page.
-             */
-            const isActive =
-              item.name === 'Calendar'
-                ? pathname === '/dashboard/calendar'
-                : item.name === 'Dashboard'
-                  ? pathname === '/dashboard'
-                  : pathname === item.href;
-
-            return (
-              <Link
-                key={item.name}
-                href={item.href}
-                className={`flex items-center gap-3 rounded-[var(--radius-md)] px-3 py-2.5 text-sm font-medium transition-colors ${
-                  isActive
-                    ? 'bg-[var(--color-primary-light)] text-[var(--color-primary)]'
-                    : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text)]'
-                }`}
-              >
-                <Icon />
-                <span>{item.name}</span>
-              </Link>
-            );
-          })}
-        </div>
-      </nav>
-
-      {/* Bottom navigation */}
-      <div className="border-t border-[var(--color-border)] p-4">
-        <Link
-          href="/dashboard/settings"
-          className={`mb-1 flex items-center gap-3 rounded-[var(--radius-md)] px-3 py-2.5 text-sm font-medium transition-colors ${
-            pathname.startsWith('/dashboard/settings')
-              ? 'bg-[var(--color-primary-light)] text-[var(--color-primary)]'
-              : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text)]'
-          }`}
-        >
-          <SettingsIcon />
-          <span>Settings</span>
-        </Link>
-
+    <>
+      {/* Mobile / tablet backdrop */}
+      {mobileOpen && (
         <button
           type="button"
-          onClick={handleLogout}
-          className="flex w-full items-center gap-3 rounded-[var(--radius-md)] px-3 py-2.5 text-sm font-medium text-[var(--color-text-secondary)] transition-colors hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text)]"
+          aria-label="Close sidebar"
+          onClick={() => setMobileOpen(false)}
+          className="fixed inset-0 z-40 bg-black/10 lg:hidden"
+        />
+      )}
+
+      <aside
+        className={`
+          fixed inset-y-0 left-0 z-50 flex flex-col
+          border-r border-border bg-surface
+          transition-[width] duration-200 ease-out
+
+          /* Desktop: unchanged */
+          lg:w-64
+
+          /* Tablet / mobile */
+          ${mobileOpen ? "w-64" : "w-16"}
+        `}
+      >
+        {/* ========================================
+            MOBILE / TABLET HEADER
+            ======================================== */}
+
+        <div
+          className={`
+            flex h-20 shrink-0 items-center
+            lg:hidden
+            ${mobileOpen ? "justify-between px-5" : "justify-center"}
+          `}
         >
-          <LogoutIcon />
-          <span>Logout</span>
-        </button>
-      </div>
-    </aside>
+          {mobileOpen ? (
+            <>
+              <Link
+                href="/dashboard"
+                onClick={() => setMobileOpen(false)}
+                className="text-[24px] font-bold tracking-[-0.3px]"
+              >
+                <span className="text-text">U</span>
+                <span className="text-primary">timely</span>
+              </Link>
+
+              <button
+                type="button"
+                onClick={() => setMobileOpen(false)}
+                aria-label="Close sidebar"
+                className="flex h-9 w-9 items-center justify-center rounded-md text-text-secondary hover:bg-surface-hover hover:text-text"
+              >
+                <LuX size={20} strokeWidth={1.8} />
+              </button>
+            </>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setMobileOpen(true)}
+              aria-label="Open sidebar"
+              className="flex h-9 w-9 items-center justify-center rounded-md text-text-secondary transition-colors hover:bg-surface-hover hover:text-text"
+            >
+              <LuMenu size={21} strokeWidth={1.8} />
+            </button>
+          )}
+        </div>
+
+        {/* ========================================
+            DESKTOP LOGO
+            ======================================== */}
+
+        <div className="hidden h-20 shrink-0 items-center px-6 lg:flex">
+          <Link
+            href="/dashboard"
+            className="text-[24px] font-bold tracking-[-0.3px]"
+          >
+            <span className="text-text">U</span>
+            <span className="text-primary">timely</span>
+          </Link>
+        </div>
+
+        {/* ========================================
+            NAVIGATION
+            ======================================== */}
+
+        <nav
+          className={`
+            flex-1
+            ${mobileOpen ? "px-4" : "px-3"}
+            lg:px-4
+          `}
+        >
+          <div className="space-y-1">
+            {navigation.map((item) => {
+              const Icon = item.icon;
+              const active = isActive(item);
+
+              return (
+                <Link
+                  key={item.name}
+                  href={item.href}
+                  onClick={() => setMobileOpen(false)}
+                  title={!mobileOpen ? item.name : undefined}
+                  className={`
+                    flex h-10 items-center rounded-md
+                    text-[15px] font-medium
+                    transition-colors
+
+                    ${
+                      mobileOpen
+                        ? "gap-3 px-3"
+                        : "justify-center px-0"
+                    }
+
+                    ${
+                      active
+                        ? "bg-primary text-white"
+                        : "text-text-secondary hover:bg-surface-hover hover:text-text"
+                    }
+
+                    lg:justify-start lg:gap-3 lg:px-3
+                  `}
+                >
+                  <Icon
+                    size={19}
+                    strokeWidth={1.8}
+                    className="shrink-0"
+                  />
+
+                  <span
+                    className={`
+                      ${mobileOpen ? "block" : "hidden"}
+                      lg:block
+                    `}
+                  >
+                    {item.name}
+                  </span>
+                </Link>
+              );
+            })}
+          </div>
+        </nav>
+
+        {/* ========================================
+            BOTTOM ACTIONS
+            ======================================== */}
+
+        <div
+          className={`
+            shrink-0 pb-5
+            ${mobileOpen ? "px-4" : "px-3"}
+            lg:px-4
+          `}
+        >
+          {/* Settings */}
+
+          <Link
+            href="/dashboard/settings"
+            onClick={() => setMobileOpen(false)}
+            title={!mobileOpen ? "Settings" : undefined}
+            className={`
+              mb-1 flex h-10 items-center rounded-md
+              text-[15px] font-medium
+              transition-colors
+
+              ${
+                mobileOpen
+                  ? "gap-3 px-3"
+                  : "justify-center px-0"
+              }
+
+              ${
+                pathname.startsWith("/dashboard/settings")
+                  ? "bg-primary text-white"
+                  : "text-text-secondary hover:bg-surface-hover hover:text-text"
+              }
+
+              lg:justify-start lg:gap-3 lg:px-3
+            `}
+          >
+            <LuSettings
+              size={19}
+              strokeWidth={1.8}
+              className="shrink-0"
+            />
+
+            <span
+              className={`
+                ${mobileOpen ? "block" : "hidden"}
+                lg:block
+              `}
+            >
+              Settings
+            </span>
+          </Link>
+
+          {/* Logout */}
+
+          <button
+            type="button"
+            title={!mobileOpen ? "Logout" : undefined}
+            className={`
+              flex h-10 w-full items-center rounded-md
+              text-[15px] font-medium
+              text-text-secondary
+              transition-colors
+              hover:bg-surface-hover hover:text-text
+
+              ${
+                mobileOpen
+                  ? "gap-3 px-3"
+                  : "justify-center px-0"
+              }
+
+              lg:justify-start lg:gap-3 lg:px-3
+            `}
+          >
+            <LuLogOut
+              size={19}
+              strokeWidth={1.8}
+              className="shrink-0"
+            />
+
+            <span
+              className={`
+                ${mobileOpen ? "block" : "hidden"}
+                lg:block
+              `}
+            >
+              Logout
+            </span>
+          </button>
+        </div>
+      </aside>
+    </>
   );
 }

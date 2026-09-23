@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { ArrowLeft, Plus, RefreshCw, X } from 'lucide-react';
 import { graphqlRequest } from '@/lib/graphql-client';
 import TaskCard from '@/app/components/tasks/TaskCard';
 
@@ -889,9 +890,10 @@ export default function CalendarDayPage({
           onClick={() => {
             window.location.href = '/dashboard/calendar';
           }}
-          className="mb-6 inline-flex items-center gap-2 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-background)] px-3.5 py-2 text-sm font-medium text-[var(--color-text-secondary)] transition-colors hover:border-[var(--color-primary)] hover:bg-[var(--color-primary-light)] hover:text-[var(--color-primary)]"
+          className="mb-6 inline-flex items-center gap-2 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3.5 py-2.5 text-sm font-medium text-[var(--color-text-secondary)] shadow-sm transition-colors hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text)]"
         >
-          ← Back to Calendar
+          <ArrowLeft size={16} strokeWidth={1.8} />
+          Back to Calendar
         </button>
 
         {/* DATE + REFRESH */}
@@ -915,9 +917,13 @@ export default function CalendarDayPage({
             type="button"
             onClick={handleRefresh}
             disabled={refreshing}
-            className="flex shrink-0 items-center gap-2 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-background)] px-3.5 py-2.5 text-sm font-medium text-[var(--color-text-secondary)] transition-colors hover:bg-[var(--color-surface)] hover:text-[var(--color-text)] disabled:cursor-not-allowed disabled:opacity-50"
+            className="flex shrink-0 items-center gap-2 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3.5 py-2.5 text-sm font-medium text-[var(--color-text-secondary)] shadow-sm transition-colors hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text)] disabled:cursor-not-allowed disabled:opacity-50"
           >
-            <span className={refreshing ? 'animate-spin' : ''}>↻</span>
+            <RefreshCw
+              size={16}
+              strokeWidth={1.8}
+              className={refreshing ? 'animate-spin' : ''}
+            />
 
             {refreshing ? 'Refreshing...' : 'Refresh'}
           </button>
@@ -961,9 +967,10 @@ export default function CalendarDayPage({
               <button
                 type="button"
                 onClick={openAddTask}
-                className="shrink-0 rounded-[var(--radius-md)] bg-[var(--color-primary)] px-3.5 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90"
+                className="inline-flex shrink-0 items-center gap-2 rounded-[var(--radius-md)] bg-[var(--color-primary)] px-3.5 py-2.5 text-sm font-medium text-white shadow-sm transition-colors hover:bg-[var(--color-primary-hover)]"
               >
-                + Add Task
+                <Plus size={16} strokeWidth={1.9} />
+                Add Task
               </button>
             </div>
 
@@ -983,6 +990,7 @@ export default function CalendarDayPage({
                       className="mt-4 text-sm font-medium text-[var(--color-primary)] hover:underline"
                     >
                       Add your first task
+                      <span aria-hidden="true">→</span>
                     </button>
                   )}
                 </div>
@@ -1106,9 +1114,9 @@ export default function CalendarDayPage({
               <button
                 type="button"
                 onClick={closeAddTask}
-                className="text-lg text-[var(--color-text-muted)] hover:text-[var(--color-text)]"
+                className="flex h-8 w-8 items-center justify-center rounded-[var(--radius-md)] text-[var(--color-text-muted)] transition-colors hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text)]"
               >
-                ×
+                <X size={17} strokeWidth={1.8} />
               </button>
             </div>
 
@@ -1381,9 +1389,9 @@ function TagSidebar({
           <button
             type="button"
             onClick={() => setShowCreateTag((value) => !value)}
-            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[var(--radius-sm)] border border-[var(--color-border)] text-lg text-[var(--color-text-secondary)] hover:bg-[var(--color-surface)]"
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-secondary)] shadow-sm transition-colors hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text)]"
           >
-            +
+            <Plus size={16} strokeWidth={1.8} />
           </button>
         </div>
 

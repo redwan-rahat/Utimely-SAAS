@@ -1,5 +1,6 @@
 'use client';
 
+import { LuRefreshCw } from 'react-icons/lu';
 import { TodayTasks } from '../components/today-tasks';
 import { ScheduledTasks } from '../components/scheduled-tasks';
 import { TodayTime } from '../components/today-time';
@@ -11,19 +12,19 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-7">
       {/* Header */}
-      <div className="flex items-start justify-between gap-4">
+      <div className="flex items-start justify-between gap-5">
         <div>
           <p className="mb-1 text-sm font-medium text-[var(--color-primary)]">
             Dashboard
           </p>
 
-          <h1 className="text-2xl font-semibold tracking-tight text-[var(--color-text)] sm:text-3xl">
+          <h1 className="text-3xl font-semibold leading-[1.1] tracking-[-0.4px] text-[var(--color-text)] sm:text-[34px]">
             Good morning
           </h1>
 
-          <p className="mt-2 text-sm text-[var(--color-text-secondary)]">
+          <p className="mt-2 text-base text-[var(--color-text-secondary)]">
             Stay focused and make progress on what matters today.
           </p>
         </div>
@@ -31,27 +32,27 @@ export default function DashboardPage() {
         <button
           type="button"
           onClick={handleRefresh}
-          className="rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-background)] px-4 py-2 text-sm font-medium text-[var(--color-text-secondary)] transition-colors hover:bg-[var(--color-surface)] hover:text-[var(--color-text)]"
+          className="inline-flex shrink-0 items-center gap-2 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-2.5 text-sm font-medium text-[var(--color-text-secondary)] shadow-sm transition-colors hover:border-[var(--color-border-hover)] hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text)]"
         >
+          <LuRefreshCw size={16} strokeWidth={1.8} />
           Refresh
         </button>
       </div>
 
       {/* Top Grid: Timer 2/3 + Today's Time 1/3 */}
-    <div className="grid items-stretch gap-6 lg:grid-cols-3">
-      <div className="lg:col-span-2">
-        <Timer />
-      </div>
+      <div className="grid items-stretch gap-6 lg:grid-cols-3">
+        <div className="h-full lg:col-span-2">
+          <Timer />
+        </div>
 
-     <div className="lg:col-span-1">
-      <TodayTime />
-      </div>
+        <div className="h-full lg:col-span-1">
+          <TodayTime />
+        </div>
       </div>
 
       {/* Bottom Grid: Today's Tasks 1/2 + Scheduled Tasks 1/2 */}
       <div className="grid gap-6 lg:grid-cols-2">
         <TodayTasks />
-
         <ScheduledTasks />
       </div>
     </div>

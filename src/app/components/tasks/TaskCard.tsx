@@ -1,7 +1,19 @@
 'use client';
 
 import { useRef, useState } from 'react';
+import {
+  CalendarDays,
+  ChevronDown,
+  ChevronUp,
+  Pencil,
+  Pause,
+  Play,
+  Plus,
+  Trash2,
+  XCircle,
+} from 'lucide-react';
 import { graphqlRequest } from '@/lib/graphql-client';
+import ConfirmModal from '@/app/components/ui/ConfirmModal';
 
 export type TaskCardTag = {
   id: string;
@@ -10,11 +22,7 @@ export type TaskCardTag = {
 };
 
 export type TaskCardStatus =
-  | 'PLANNED'
-  | 'IN_PROGRESS'
-  | 'COMPLETED'
-  | 'PAUSED'
-  | 'CANCELLED';
+  'PLANNED' | 'IN_PROGRESS' | 'COMPLETED' | 'PAUSED' | 'CANCELLED';
 
 export type TaskCardTask = {
   id: string;
@@ -189,19 +197,19 @@ function getStatusLabel(status: TaskCardStatus) {
 function getStatusClass(status: TaskCardStatus) {
   switch (status) {
     case 'IN_PROGRESS':
-      return 'bg-blue-50 text-blue-600';
+      return 'bg-[var(--color-primary-light)] text-[var(--color-primary)]';
 
     case 'COMPLETED':
-      return 'bg-green-50 text-green-600';
+      return 'bg-green-50 text-[var(--color-success)]';
 
     case 'PAUSED':
-      return 'bg-yellow-50 text-yellow-700';
+      return 'bg-amber-50 text-amber-700';
 
     case 'CANCELLED':
-      return 'bg-orange-50 text-orange-600';
+      return 'bg-red-50 text-[var(--color-danger)]';
 
     default:
-      return 'bg-gray-100 text-gray-600';
+      return 'bg-[var(--color-surface-hover)] text-[var(--color-text-secondary)]';
   }
 }
 
@@ -248,21 +256,13 @@ type TaskCardProps = {
   tags: TaskCardTag[];
   timeSessions: TaskCardTimeSession[];
 
-  onTaskUpdated: (
-    task: TaskCardTask,
-  ) => void;
+  onTaskUpdated: (task: TaskCardTask) => void;
 
-  onTaskDeleted: (
-    taskId: string,
-  ) => void;
+  onTaskDeleted: (taskId: string) => void;
 
-  onSessionAdded: (
-    session: TaskCardTimeSession,
-  ) => void;
+  onSessionAdded: (session: TaskCardTimeSession) => void;
 
-  onError: (
-    message: string,
-  ) => void;
+  onError: (message: string) => void;
 
   currentDate?: string;
 
@@ -288,76 +288,41 @@ export default function TaskCard({
      EXPAND
   ======================================================= */
 
-  const [
-    expanded,
-    setExpanded,
-  ] = useState(false);
+  const [expanded, setExpanded] = useState(false);
 
   /* =======================================================
      EDIT TASK
   ======================================================= */
 
-  const [
-    editingTask,
-    setEditingTask,
-  ] = useState(false);
+  const [editingTask, setEditingTask] = useState(false);
 
-  const [
-    editingTitle,
-    setEditingTitle,
-  ] = useState(task.title);
+  const [editingTitle, setEditingTitle] = useState(task.title);
 
-  const [
-    editingDescription,
-    setEditingDescription,
-  ] = useState(
+  const [editingDescription, setEditingDescription] = useState(
     task.description ?? '',
   );
 
-  const [
-    savingTask,
-    setSavingTask,
-  ] = useState(false);
+  const [savingTask, setSavingTask] = useState(false);
 
   /* =======================================================
      PROGRESS
   ======================================================= */
 
-  const [
-    editingProgress,
-    setEditingProgress,
-  ] = useState(false);
+  const [editingProgress, setEditingProgress] = useState(false);
 
-  const [
-    progressValue,
-    setProgressValue,
-  ] = useState(
-    String(task.progress),
-  );
+  const [progressValue, setProgressValue] = useState(String(task.progress));
 
-  const [
-    savingProgress,
-    setSavingProgress,
-  ] = useState(false);
+  const [savingProgress, setSavingProgress] = useState(false);
 
   /* =======================================================
      TIME
   ======================================================= */
 
-  const [
-    addingTime,
-    setAddingTime,
-  ] = useState(false);
+  const [addingTime, setAddingTime] = useState(false);
 
-  const [
-    timeValue,
-    setTimeValue,
-  ] = useState('');
+  const [timeValue, setTimeValue] = useState('');
 
-  const [
-    savingTime,
-    setSavingTime,
-  ] = useState(false);
+  const [savingTime, setSavingTime] = useState(false);
 
   const savingTimeRef = useRef(false);
 
@@ -365,68 +330,45 @@ export default function TaskCard({
      TAGS
   ======================================================= */
 
-const [
-  showAddTags,
-  setShowAddTags,
-] = useState(false);
+  const [showAddTags, setShowAddTags] = useState(false);
 
-const [
-  addingTag,
-  setAddingTag,
-] = useState(false);
+  const [addingTag, setAddingTag] = useState(false);
   /* =======================================================
      SCHEDULE
   ======================================================= */
 
-  const [
-    showSchedule,
-    setShowSchedule,
-  ] = useState(false);
+  const [showSchedule, setShowSchedule] = useState(false);
 
-  const [
-    scheduleDate,
-    setScheduleDate,
-  ] = useState('');
+  const [scheduleDate, setScheduleDate] = useState('');
 
-  const [
-    scheduling,
-    setScheduling,
-  ] = useState(false);
+  const [scheduling, setScheduling] = useState(false);
 
   /* =======================================================
      STATUS
   ======================================================= */
 
-  const [
-    updatingStatus,
-    setUpdatingStatus,
-  ] = useState(false);
+  const [updatingStatus, setUpdatingStatus] = useState(false);
 
   /* =======================================================
      DELETE
   ======================================================= */
 
-  const [
-    deleting,
-    setDeleting,
-  ] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   /* =======================================================
      TIME DATA
   ======================================================= */
 
-  const taskSessions =
-    timeSessions.filter(
-      (session) =>
-        session.taskId === task.id,
-    );
+  const taskSessions = timeSessions.filter(
+    (session) => session.taskId === task.id,
+  );
 
-  const totalSeconds =
-    taskSessions.reduce(
-      (total, session) =>
-        total + session.duration,
-      0,
-    );
+  const totalSeconds = taskSessions.reduce(
+    (total, session) => total + session.duration,
+    0,
+  );
 
   /* =======================================================
      UPDATE TASK
@@ -434,9 +376,7 @@ const [
 
   async function saveTaskEdit() {
     if (!editingTitle.trim()) {
-      onError(
-        'Task name cannot be empty.',
-      );
+      onError('Task name cannot be empty.');
 
       return;
     }
@@ -445,34 +385,21 @@ const [
       setSavingTask(true);
       onError('');
 
-      const result =
-        await graphqlRequest<{
-          updateTask: TaskCardTask;
-        }>(
-          UPDATE_TASK_MUTATION,
-          {
-            id: task.id,
-            input: {
-              title:
-                editingTitle.trim(),
-              description:
-                editingDescription.trim() ||
-                null,
-            },
-          },
-        );
+      const result = await graphqlRequest<{
+        updateTask: TaskCardTask;
+      }>(UPDATE_TASK_MUTATION, {
+        id: task.id,
+        input: {
+          title: editingTitle.trim(),
+          description: editingDescription.trim() || null,
+        },
+      });
 
       setEditingTask(false);
 
-      onTaskUpdated(
-        result.updateTask,
-      );
+      onTaskUpdated(result.updateTask);
     } catch (error) {
-      onError(
-        error instanceof Error
-          ? error.message
-          : 'Failed to update task',
-      );
+      onError(error instanceof Error ? error.message : 'Failed to update task');
     } finally {
       setSavingTask(false);
     }
@@ -483,18 +410,10 @@ const [
   ======================================================= */
 
   async function saveProgress() {
-    const value = Number(
-      progressValue,
-    );
+    const value = Number(progressValue);
 
-    if (
-      !Number.isInteger(value) ||
-      value < 0 ||
-      value > 100
-    ) {
-      onError(
-        'Progress must be a whole number between 0 and 100.',
-      );
+    if (!Number.isInteger(value) || value < 0 || value > 100) {
+      onError('Progress must be a whole number between 0 and 100.');
 
       return;
     }
@@ -503,29 +422,21 @@ const [
       setSavingProgress(true);
       onError('');
 
-      const result =
-        await graphqlRequest<{
-          updateTask: TaskCardTask;
-        }>(
-          UPDATE_TASK_MUTATION,
-          {
-            id: task.id,
-            input: {
-              progress: value,
-            },
-          },
-        );
+      const result = await graphqlRequest<{
+        updateTask: TaskCardTask;
+      }>(UPDATE_TASK_MUTATION, {
+        id: task.id,
+        input: {
+          progress: value,
+        },
+      });
 
       setEditingProgress(false);
 
-      onTaskUpdated(
-        result.updateTask,
-      );
+      onTaskUpdated(result.updateTask);
     } catch (error) {
       onError(
-        error instanceof Error
-          ? error.message
-          : 'Failed to update progress',
+        error instanceof Error ? error.message : 'Failed to update progress',
       );
     } finally {
       setSavingProgress(false);
@@ -541,17 +452,10 @@ const [
       return;
     }
 
-    const minutes = Number(
-      timeValue,
-    );
+    const minutes = Number(timeValue);
 
-    if (
-      !Number.isInteger(minutes) ||
-      minutes <= 0
-    ) {
-      onError(
-        'Time must be a positive whole number of minutes.',
-      );
+    if (!Number.isInteger(minutes) || minutes <= 0) {
+      onError('Time must be a positive whole number of minutes.');
 
       return;
     }
@@ -561,29 +465,19 @@ const [
       setSavingTime(true);
       onError('');
 
-      const result =
-        await graphqlRequest<{
-          addManualTime: TaskCardTimeSession;
-        }>(
-          ADD_MANUAL_TIME_MUTATION,
-          {
-            taskId: task.id,
-            minutes,
-          },
-        );
+      const result = await graphqlRequest<{
+        addManualTime: TaskCardTimeSession;
+      }>(ADD_MANUAL_TIME_MUTATION, {
+        taskId: task.id,
+        minutes,
+      });
 
-      onSessionAdded(
-        result.addManualTime,
-      );
+      onSessionAdded(result.addManualTime);
 
       setAddingTime(false);
       setTimeValue('');
     } catch (error) {
-      onError(
-        error instanceof Error
-          ? error.message
-          : 'Failed to add time',
-      );
+      onError(error instanceof Error ? error.message : 'Failed to add time');
     } finally {
       savingTimeRef.current = false;
       setSavingTime(false);
@@ -595,42 +489,24 @@ const [
   ======================================================= */
 
   async function deleteTask() {
-    const confirmed =
-      window.confirm(
-        'Are you sure you want to delete this task?',
-      );
-
-    if (!confirmed) {
-      return;
-    }
-
     try {
       setDeleting(true);
       onError('');
 
-      const result =
-        await graphqlRequest<{
-          deleteTask: boolean;
-        }>(
-          DELETE_TASK_MUTATION,
-          {
-            id: task.id,
-          },
-        );
+      const result = await graphqlRequest<{
+        deleteTask: boolean;
+      }>(DELETE_TASK_MUTATION, {
+        id: task.id,
+      });
 
       if (!result.deleteTask) {
-        throw new Error(
-          'Failed to delete task',
-        );
+        throw new Error('Failed to delete task');
       }
 
       onTaskDeleted(task.id);
+      setShowDeleteModal(false);
     } catch (error) {
-      onError(
-        error instanceof Error
-          ? error.message
-          : 'Failed to delete task',
-      );
+      onError(error instanceof Error ? error.message : 'Failed to delete task');
     } finally {
       setDeleting(false);
     }
@@ -640,49 +516,32 @@ const [
      ADD TAG
   ======================================================= */
 
-  async function addTag(
-    tagId: string,
-  ) {
+  async function addTag(tagId: string) {
     try {
       setAddingTag(true);
       onError('');
 
-      const result =
-        await graphqlRequest<{
-          addTagToTask: boolean;
-        }>(
-          ADD_TAG_MUTATION,
-          {
-            taskId: task.id,
-            tagId,
-          },
-        );
+      const result = await graphqlRequest<{
+        addTagToTask: boolean;
+      }>(ADD_TAG_MUTATION, {
+        taskId: task.id,
+        tagId,
+      });
 
       if (!result.addTagToTask) {
-        throw new Error(
-          'Failed to add tag',
-        );
+        throw new Error('Failed to add tag');
       }
 
-      const tag = tags.find(
-        (item) => item.id === tagId,
-      );
+      const tag = tags.find((item) => item.id === tagId);
 
       if (tag) {
         onTaskUpdated({
           ...task,
-          tags: [
-            ...task.tags,
-            tag,
-          ],
+          tags: [...task.tags, tag],
         });
       }
     } catch (error) {
-      onError(
-        error instanceof Error
-          ? error.message
-          : 'Failed to add tag',
-      );
+      onError(error instanceof Error ? error.message : 'Failed to add tag');
     } finally {
       setAddingTag(false);
     }
@@ -692,43 +551,28 @@ const [
      REMOVE TAG
   ======================================================= */
 
-  async function removeTag(
-    tagId: string,
-  ) {
+  async function removeTag(tagId: string) {
     try {
       setAddingTag(true);
       onError('');
 
-      const result =
-        await graphqlRequest<{
-          removeTagFromTask: boolean;
-        }>(
-          REMOVE_TAG_MUTATION,
-          {
-            taskId: task.id,
-            tagId,
-          },
-        );
+      const result = await graphqlRequest<{
+        removeTagFromTask: boolean;
+      }>(REMOVE_TAG_MUTATION, {
+        taskId: task.id,
+        tagId,
+      });
 
       if (!result.removeTagFromTask) {
-        throw new Error(
-          'Failed to remove tag',
-        );
+        throw new Error('Failed to remove tag');
       }
 
       onTaskUpdated({
         ...task,
-        tags: task.tags.filter(
-          (tag) =>
-            tag.id !== tagId,
-        ),
+        tags: task.tags.filter((tag) => tag.id !== tagId),
       });
     } catch (error) {
-      onError(
-        error instanceof Error
-          ? error.message
-          : 'Failed to remove tag',
-      );
+      onError(error instanceof Error ? error.message : 'Failed to remove tag');
     } finally {
       setAddingTag(false);
     }
@@ -752,13 +596,10 @@ const [
           id: string;
           date: string;
         };
-      }>(
-        SCHEDULE_TASK_MUTATION,
-        {
-          taskId: task.id,
-          date: scheduleDate,
-        },
-      );
+      }>(SCHEDULE_TASK_MUTATION, {
+        taskId: task.id,
+        date: scheduleDate,
+      });
 
       setShowSchedule(false);
       setScheduleDate('');
@@ -766,9 +607,7 @@ const [
       onScheduleChanged();
     } catch (error) {
       onError(
-        error instanceof Error
-          ? error.message
-          : 'Failed to schedule task',
+        error instanceof Error ? error.message : 'Failed to schedule task',
       );
     } finally {
       setScheduling(false);
@@ -782,18 +621,13 @@ const [
 
       const result = await graphqlRequest<{
         unscheduleTask: boolean;
-      }>(
-        UNSCHEDULE_TASK_MUTATION,
-        {
-          taskId: task.id,
-          date: currentDate,
-        },
-      );
+      }>(UNSCHEDULE_TASK_MUTATION, {
+        taskId: task.id,
+        date: currentDate,
+      });
 
       if (!result.unscheduleTask) {
-        throw new Error(
-          'Failed to remove task from this date',
-        );
+        throw new Error('Failed to remove task from this date');
       }
 
       onScheduleChanged();
@@ -812,37 +646,24 @@ const [
      PAUSE / RESUME / CANCEL
   ======================================================= */
 
-  async function updateStatus(
-    status:
-      | 'IN_PROGRESS'
-      | 'PAUSED'
-      | 'CANCELLED',
-  ) {
+  async function updateStatus(status: 'IN_PROGRESS' | 'PAUSED' | 'CANCELLED') {
     try {
       setUpdatingStatus(true);
       onError('');
 
-      const result =
-        await graphqlRequest<{
-          updateTask: TaskCardTask;
-        }>(
-          UPDATE_TASK_MUTATION,
-          {
-            id: task.id,
-            input: {
-              status,
-            },
-          },
-        );
+      const result = await graphqlRequest<{
+        updateTask: TaskCardTask;
+      }>(UPDATE_TASK_MUTATION, {
+        id: task.id,
+        input: {
+          status,
+        },
+      });
 
-      onTaskUpdated(
-        result.updateTask,
-      );
+      onTaskUpdated(result.updateTask);
     } catch (error) {
       onError(
-        error instanceof Error
-          ? error.message
-          : 'Failed to update task status',
+        error instanceof Error ? error.message : 'Failed to update task status',
       );
     } finally {
       setUpdatingStatus(false);
@@ -853,22 +674,16 @@ const [
      AVAILABLE TAGS
   ======================================================= */
 
-  const availableTags =
-    tags.filter(
-      (tag) =>
-        !task.tags.some(
-          (taskTag) =>
-            taskTag.id === tag.id,
-        ),
-    );
+  const availableTags = tags.filter(
+    (tag) => !task.tags.some((taskTag) => taskTag.id === tag.id),
+  );
 
   /* =======================================================
      RENDER
   ======================================================= */
 
   return (
-    <article className="rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-background)] p-5">
-
+    <article className="rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)] p-5 shadow-[0_2px_10px_rgba(0,0,0,0.04)]">
       {/* ===================================================
           EDIT MODE
       =================================================== */}
@@ -878,11 +693,7 @@ const [
           <input
             type="text"
             value={editingTitle}
-            onChange={(event) =>
-              setEditingTitle(
-                event.target.value,
-              )
-            }
+            onChange={(event) => setEditingTitle(event.target.value)}
             onKeyDown={(event) => {
               if (event.key === 'Enter') {
                 event.preventDefault();
@@ -899,11 +710,7 @@ const [
 
           <textarea
             value={editingDescription}
-            onChange={(event) =>
-              setEditingDescription(
-                event.target.value,
-              )
-            }
+            onChange={(event) => setEditingDescription(event.target.value)}
             rows={3}
             className="w-full resize-none rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-background)] px-3 py-2 text-sm text-[var(--color-text)] outline-none placeholder:text-[var(--color-text-muted)] focus:border-[var(--color-primary)]"
           />
@@ -915,16 +722,12 @@ const [
               disabled={savingTask}
               className="rounded-[var(--radius-md)] bg-[var(--color-primary)] px-3 py-1.5 text-xs font-medium text-white disabled:opacity-50"
             >
-              {savingTask
-                ? 'Saving...'
-                : 'Save'}
+              {savingTask ? 'Saving...' : 'Save'}
             </button>
 
             <button
               type="button"
-              onClick={() =>
-                setEditingTask(false)
-              }
+              onClick={() => setEditingTask(false)}
               disabled={savingTask}
               className="rounded-[var(--radius-md)] border border-[var(--color-border)] px-3 py-1.5 text-xs font-medium text-[var(--color-text-secondary)]"
             >
@@ -939,7 +742,6 @@ const [
           ================================================= */}
 
           <div className="flex items-start justify-between gap-4">
-
             {/* TITLE + DESCRIPTION */}
 
             <div className="min-w-0 flex-1">
@@ -957,31 +759,25 @@ const [
             {/* TAGS + STATUS */}
 
             <div className="flex max-w-[55%] shrink-0 flex-wrap items-center justify-end gap-2">
-
-              {task.tags.map(
-                (tag, index) => (
-                  <div
-                    key={tag.id}
-                    className="flex items-center gap-2"
-                  >
-                    {index > 0 && (
-                      <span className="text-xs text-[var(--color-text-muted)]">
-                        |
-                      </span>
-                    )}
-
-                    <span
-                      className="rounded-full px-2.5 py-1 text-[11px] font-medium"
-                      style={{
-                        backgroundColor: `${tag.color}20`,
-                        color: tag.color,
-                      }}
-                    >
-                      {tag.name}
+              {task.tags.map((tag, index) => (
+                <div key={tag.id} className="flex items-center gap-2">
+                  {index > 0 && (
+                    <span className="text-xs text-[var(--color-text-muted)]">
+                      |
                     </span>
-                  </div>
-                ),
-              )}
+                  )}
+
+                  <span
+                    className="rounded-full px-2.5 py-1 text-[11px] font-medium"
+                    style={{
+                      backgroundColor: `${tag.color}20`,
+                      color: tag.color,
+                    }}
+                  >
+                    {tag.name}
+                  </span>
+                </div>
+              ))}
 
               {task.tags.length > 0 && (
                 <span className="text-xs text-[var(--color-text-muted)]">
@@ -992,9 +788,7 @@ const [
               <span
                 className={`rounded-full px-2.5 py-1 text-[11px] font-medium ${getStatusClass(task.status)}`}
               >
-                {getStatusLabel(
-                  task.status,
-                )}
+                {getStatusLabel(task.status)}
               </span>
             </div>
           </div>
@@ -1003,10 +797,9 @@ const [
               PROGRESS
           ================================================= */}
 
-          <div className="mt-5 grid grid-cols-[minmax(0,1fr)_58px] items-center gap-3">
-
-            <div className="min-w-0">
-              <div className="h-2 overflow-hidden rounded-full bg-[var(--color-surface-hover)]">
+          <div className="mt-5 flex items-center gap-6 md:gap-12">
+            <div className="w-full">
+              <div className="h-4 overflow-hidden rounded-full bg-gray-200">
                 <div
                   className={`h-full rounded-full transition-all ${getProgressColor(task.progress)}`}
                   style={{
@@ -1015,78 +808,67 @@ const [
                 />
               </div>
             </div>
+            <div className='w-[72px]'>
+              {editingProgress ? (
+                <input
+                  type="number"
+                  min="0"
+                  max="100"
+                  value={progressValue}
+                  onChange={(event) => setProgressValue(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter') {
+                      saveProgress();
+                    }
 
-            {editingProgress ? (
-              <input
-                type="number"
-                min="0"
-                max="100"
-                value={progressValue}
-                onChange={(event) =>
-                  setProgressValue(
-                    event.target.value,
-                  )
-                }
-                onKeyDown={(event) => {
-                  if (event.key === 'Enter') {
-                    saveProgress();
-                  }
+                    if (event.key === 'Escape') {
+                      setEditingProgress(false);
+                    }
+                  }}
+                  onBlur={saveProgress}
+                  autoFocus
+                  disabled={savingProgress}
+                  className="w-[72px] rounded-[var(--radius-md)] border border-[var(--color-primary)] bg-[var(--color-background)] px-2 py-1 text-right text-3xl font-semibold text-[var(--color-text)] outline-none"
+                />
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEditingProgress(true);
 
-                  if (event.key === 'Escape') {
-                    setEditingProgress(
-                      false,
-                    );
-                  }
-                }}
-                onBlur={saveProgress}
-                autoFocus
-                disabled={savingProgress}
-                className="w-[58px] rounded-[var(--radius-md)] border border-[var(--color-primary)] bg-[var(--color-background)] px-2 py-1 text-right text-lg font-semibold text-[var(--color-text)] outline-none"
-              />
-            ) : (
-              <button
-                type="button"
-                onClick={() => {
-                  setEditingProgress(
-                    true,
-                  );
+                    setProgressValue(String(task.progress));
+                  }}
+                  className="group flex w-[72px] flex-col items-end text-right"
+                  title="Click to edit progress"
+                >
+                  <span className="text-3xl font-bold tracking-tight text-[var(--color-text)] transition-colors group-hover:text-[var(--color-primary)]">
+                    {task.progress}%
+                  </span>
+                  <span className="mt-1 text-[10px] font-medium leading-none text-[var(--color-text-muted)]">
+                    Click to edit
+                  </span>
+                </button>
+              )}
+            </div>
 
-                  setProgressValue(
-                    String(
-                      task.progress,
-                    ),
-                  );
-                }}
-                className="w-[58px] text-right text-xl font-semibold leading-none text-[var(--color-text)] hover:text-[var(--color-primary)]"
-              >
-                {task.progress}%
-              </button>
-            )}
           </div>
 
           {/* =================================================
               TIME
           ================================================= */}
 
-          <div className="mt-3 flex items-center justify-between gap-4">
-
+          <div className="mt-5 flex items-center justify-between gap-4">
             <div className="flex min-w-0 flex-wrap items-center gap-1.5">
+              {taskSessions.map((session) => (
+                <span
+                  key={session.id}
+                  className="rounded-full bg-[var(--color-surface)] px-2.5 py-1 text-xs text-[var(--color-text-secondary)]"
+                >
+                  {formatEntryTime(session.duration)}
+                </span>
+              ))}
 
-              {taskSessions.map(
-                (session) => (
-                  <span
-                    key={session.id}
-                    className="rounded-full bg-[var(--color-surface)] px-2.5 py-1 text-xs text-[var(--color-text-secondary)]"
-                  >
-                    {formatEntryTime(
-                      session.duration,
-                    )}
-                  </span>
-                ),
-              )}
-
-              {taskSessions.length ===
-                0 && (
+              {taskSessions.length === 0 && (
                 <span className="text-xs text-[var(--color-text-muted)]">
                   No time recorded
                 </span>
@@ -1097,11 +879,7 @@ const [
                   type="number"
                   min="1"
                   value={timeValue}
-                  onChange={(event) =>
-                    setTimeValue(
-                      event.target.value,
-                    )
-                  }
+                  onChange={(event) => setTimeValue(event.target.value)}
                   onKeyDown={(event) => {
                     if (event.key === 'Enter') {
                       saveTime();
@@ -1131,17 +909,16 @@ const [
                     setAddingTime(true);
                     setTimeValue('');
                   }}
-                  className="rounded-full border border-dashed border-[var(--color-border)] px-2.5 py-1 text-xs text-[var(--color-text-muted)] hover:border-[var(--color-primary)] hover:text-[var(--color-primary)]"
+                  className="inline-flex items-center gap-1.5 rounded-full border border-dashed border-[var(--color-border)] px-2.5 py-1 text-xs font-medium text-[var(--color-text-muted)] transition-colors hover:border-[var(--color-primary)] hover:bg-[var(--color-primary-light)] hover:text-[var(--color-primary)]"
                 >
-                  + Add time
+                  <Plus size={13} strokeWidth={1.8} />
+                  Add time
                 </button>
               )}
             </div>
 
             <span className="shrink-0 text-sm font-semibold text-[var(--color-text)]">
-              {formatTotalTime(
-                totalSeconds,
-              )}
+              {formatTotalTime(totalSeconds)}
             </span>
           </div>
 
@@ -1150,150 +927,118 @@ const [
           ================================================= */}
 
           <div className="mt-4 border-t border-[var(--color-border)] pt-3">
-
             <button
               type="button"
-              onClick={() =>
-                setExpanded(
-                  (value) => !value,
-                )
-              }
+              onClick={() => setExpanded((value) => !value)}
               className="flex w-full items-center justify-center gap-2 text-xs font-medium text-[var(--color-text-muted)] hover:text-[var(--color-text)]"
             >
-              {expanded
-                ? 'Hide details'
-                : 'Show details'}
+              {expanded ? 'Hide details' : 'Show details'}
 
-              <span className="text-[10px]">
-                {expanded
-                  ? '▲'
-                  : '▼'}
-              </span>
+              {expanded ? (
+                <ChevronUp size={14} strokeWidth={1.8} />
+              ) : (
+                <ChevronDown size={14} strokeWidth={1.8} />
+              )}
             </button>
 
             {expanded && (
               <div className="mt-4 space-y-4">
-
                 {/* =================================================
                     ACTIONS
                 ================================================= */}
 
                 <div className="relative flex items-center justify-between gap-4 border-t border-[var(--color-border)] pt-4">
-
                   <div className="flex flex-wrap items-center gap-2">
                     {/* SCHEDULE */}
 
                     <button
-                    type="button"
-                    onClick={() =>
-                      setShowSchedule(
-                        (value) => !value,
-                      )
-                    }
-                    className="font-medium text-blue-600 hover:text-blue-700"
-                  >
-                    Schedule
-                  </button>
+                      type="button"
+                      onClick={() => setShowSchedule((value) => !value)}
+                      className="inline-flex items-center gap-1.5 rounded-[var(--radius-md)] px-2 py-1 text-xs font-medium text-[var(--color-primary)] transition-colors hover:bg-[var(--color-primary-light)]"
+                    >
+                      <CalendarDays size={14} strokeWidth={1.8} />
+                      Schedule
+                    </button>
 
-                  <span className="text-[var(--color-text-muted)]">
-                    •
-                  </span>
+                    {/* <span className="text-[var(--color-text-muted)]">
+                      •
+                      </span> */}
 
-                  {/* PAUSE / RESUME */}
+                    {/* PAUSE / RESUME */}
 
-                  {task.status ===
-                  'PAUSED' ? (
-                    <>
-                      <button
-                        type="button"
-                        onClick={() =>
-                          updateStatus(
-                            'IN_PROGRESS',
-                          )
-                        }
-                        disabled={
-                          updatingStatus
-                        }
-                        className="font-medium text-green-600 hover:text-green-700 disabled:opacity-50"
-                      >
-                        Resume
-                      </button>
-
-                      <span className="text-[var(--color-text-muted)]">
-                        •
-                      </span>
-                    </>
-                  ) : (
-                    task.status !==
-                      'COMPLETED' &&
-                    task.status !==
-                      'CANCELLED' && (
+                    {task.status === 'PAUSED' ? (
                       <>
                         <button
                           type="button"
-                          onClick={() =>
-                            updateStatus(
-                              'PAUSED',
-                            )
-                          }
-                          disabled={
-                            updatingStatus
-                          }
-                          className="font-medium text-yellow-600 hover:text-yellow-700 disabled:opacity-50"
+                          onClick={() => updateStatus('IN_PROGRESS')}
+                          disabled={updatingStatus}
+                          className="inline-flex items-center gap-1.5 rounded-[var(--radius-md)] px-2 py-1 text-xs font-medium text-[var(--color-success)] transition-colors hover:bg-green-50 disabled:opacity-50"
                         >
-                          Pause
+                          <Play size={14} strokeWidth={1.8} />
+                          Resume
                         </button>
 
-                        <span className="text-[var(--color-text-muted)]">
+                        {/* <span className="text-[var(--color-text-muted)]">
                           •
-                        </span>
+                        </span> */}
                       </>
-                    )
-                  )}
+                    ) : (
+                      task.status !== 'COMPLETED' &&
+                      task.status !== 'CANCELLED' && (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => updateStatus('PAUSED')}
+                            disabled={updatingStatus}
+                            className="inline-flex items-center gap-1.5 rounded-[var(--radius-md)] px-2 py-1 text-xs font-medium text-amber-700 transition-colors hover:bg-amber-50 disabled:opacity-50"
+                          >
+                            <Pause size={14} strokeWidth={1.8} />
+                            Pause
+                          </button>
 
-                  {/* REMOVE FROM DATE */}
-
-{currentDate &&
-  task.status !== 'COMPLETED' &&
-  task.status !== 'CANCELLED' && (
-    <>
-      <button
-        type="button"
-        onClick={removeTaskFromDate}
-        disabled={scheduling}
-        className="font-medium text-gray-600 hover:text-gray-700 disabled:opacity-50"
-      >
-        Remove
-      </button>
-
-      <span className="text-[var(--color-text-muted)]">
-        •
-      </span>
-    </>
-  )}
-
-                  {/* CANCEL */}
-
-                  {task.status !==
-                    'COMPLETED' &&
-                    task.status !==
-                      'CANCELLED' && (
-                      <button
-                        type="button"
-                        onClick={() =>
-                          updateStatus(
-                            'CANCELLED',
-                          )
-                        }
-                        disabled={
-                          updatingStatus
-                        }
-                        className="font-medium text-orange-600 hover:text-orange-700 disabled:opacity-50"
-                      >
-                        Cancel
-                      </button>
+                          {/* <span className="text-[var(--color-text-muted)]">
+                            •
+                          </span> */}
+                        </>
+                      )
                     )}
 
+                    {/* REMOVE FROM DATE */}
+
+                    {currentDate &&
+                      task.status !== 'COMPLETED' &&
+                      task.status !== 'CANCELLED' && (
+                        <>
+                          <button
+                            type="button"
+                            onClick={removeTaskFromDate}
+                            disabled={scheduling}
+                            className="inline-flex items-center gap-1.5 rounded-[var(--radius-md)] px-2 py-1 text-xs font-medium text-[var(--color-text-secondary)] transition-colors hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text)] disabled:opacity-50"
+                          >
+                            <XCircle size={14} strokeWidth={1.8} />
+                            Remove
+                          </button>
+
+                          {/* <span className="text-[var(--color-text-muted)]">
+                            •
+                          </span> */}
+                        </>
+                      )}
+
+                    {/* CANCEL */}
+
+                    {task.status !== 'COMPLETED' &&
+                      task.status !== 'CANCELLED' && (
+                        <button
+                          type="button"
+                          onClick={() => updateStatus('CANCELLED')}
+                          disabled={updatingStatus}
+                          className="inline-flex items-center gap-1.5 rounded-[var(--radius-md)] px-2 py-1 text-xs font-medium text-[var(--color-danger)] transition-colors hover:bg-red-50 disabled:opacity-50"
+                        >
+                          <XCircle size={14} strokeWidth={1.8} />
+                          Cancel
+                        </button>
+                      )}
                   </div>
 
                   {/* EDIT / DELETE */}
@@ -1306,43 +1051,29 @@ const [
                       onClick={() => {
                         setEditingTask(true);
                         setEditingTitle(task.title);
-                        setEditingDescription(
-                          task.description ?? '',
-                        );
+                        setEditingDescription(task.description ?? '');
                       }}
-                      className="flex h-8 w-8 items-center justify-center rounded-[var(--radius-sm)] bg-blue-500 text-white hover:bg-blue-600"
+                      className="flex h-8 w-8 items-center justify-center rounded-[var(--radius-md)] bg-[var(--color-primary)] text-white shadow-sm transition-colors hover:bg-[var(--color-primary-hover)]"
                       aria-label="Edit task"
                       title="Edit task"
                     >
-                      <svg
-                        viewBox="0 0 20 20"
-                        className="h-4 w-4 fill-current"
-                        aria-hidden="true"
-                      >
-                        <path d="M14.69 2.86a2 2 0 0 1 2.83 2.83l-9.9 9.9-4.02 1.19 1.19-4.02 1.19-4.02 9.9-9.9ZM4.2 13.8l-.55 1.85 1.85-.55L4.2 13.8Z" />
-                      </svg>
+                      <Pencil size={15} strokeWidth={1.9} />
                     </button>
 
                     {/* DELETE */}
 
                     <button
                       type="button"
-                      onClick={deleteTask}
+                      onClick={() => setShowDeleteModal(true)}
                       disabled={deleting}
-                      className="flex h-8 w-8 items-center justify-center rounded-[var(--radius-sm)] bg-red-500 text-white hover:bg-red-600 disabled:opacity-50"
+                      className="flex h-8 w-8 items-center justify-center rounded-[var(--radius-md)] bg-red-500 text-white shadow-sm transition-colors hover:bg-red-600 disabled:opacity-50"
                       aria-label="Delete task"
                       title="Delete task"
                     >
                       {deleting ? (
                         '...'
                       ) : (
-                        <svg
-                          viewBox="0 0 20 20"
-                          className="h-4 w-4 fill-current"
-                          aria-hidden="true"
-                        >
-                          <path d="M7 2h6l1 2h3v2h-1v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6H3V4h3l1-2Zm0 4v8h2V6H7Zm4 0v8h2V6h-2Z" />
-                        </svg>
+                        <Trash2 size={15} strokeWidth={1.9} />
                       )}
                     </button>
                   </div>
@@ -1353,7 +1084,6 @@ const [
 
                   {showSchedule && (
                     <div className="absolute left-0 top-12 z-30 w-64 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-background)] p-4 shadow-lg">
-
                       <p className="mb-3 text-sm font-medium text-[var(--color-text)]">
                         Schedule task
                       </p>
@@ -1362,15 +1092,12 @@ const [
                         type="date"
                         value={scheduleDate}
                         onChange={(event) =>
-                          setScheduleDate(
-                            event.target.value,
-                          )
+                          setScheduleDate(event.target.value)
                         }
                         className="w-full rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-background)] px-3 py-2 text-sm text-[var(--color-text)] outline-none focus:border-blue-500"
                       />
 
                       <div className="mt-3 flex justify-end gap-2">
-
                         <button
                           type="button"
                           onClick={() => {
@@ -1385,17 +1112,11 @@ const [
                         <button
                           type="button"
                           onClick={scheduleTask}
-                          disabled={
-                            !scheduleDate ||
-                            scheduling
-                          }
+                          disabled={!scheduleDate || scheduling}
                           className="rounded-[var(--radius-md)] bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700 disabled:opacity-50"
                         >
-                          {scheduling
-                            ? 'Saving...'
-                            : 'Schedule'}
+                          {scheduling ? 'Saving...' : 'Schedule'}
                         </button>
-
                       </div>
                     </div>
                   )}
@@ -1405,45 +1126,29 @@ const [
                     TAG MANAGEMENT
                 ================================================= */}
 
-                {availableTags.length >
-                  0 && (
+                {availableTags.length > 0 && (
                   <div className="border-t border-[var(--color-border)] pt-4">
+                    <button
+                      type="button"
+                      onClick={() => setShowAddTags((value) => !value)}
+                      className="text-xs font-medium text-[var(--color-text-muted)] hover:text-[var(--color-primary)]"
+                    >
+                      {showAddTags ? 'Hide tags' : '+ Add tag'}
+                    </button>
 
-        <button
-  type="button"
-  onClick={() =>
-    setShowAddTags(
-      (value) => !value,
-    )
-  }
-  className="text-xs font-medium text-[var(--color-text-muted)] hover:text-[var(--color-primary)]"
->
-  {showAddTags
-    ? 'Hide tags'
-    : '+ Add tag'}
-</button>
-
-                    {showAddTags  && (
+                    {showAddTags && (
                       <div className="mt-2 flex flex-wrap gap-2">
-                        {availableTags.map(
-                          (tag) => (
-                            <button
-                              key={tag.id}
-                              type="button"
-                              onClick={() =>
-                                addTag(
-                                  tag.id,
-                                )
-                              }
-                              disabled={
-                                addingTag
-                              }
-                              className="rounded-full border border-[var(--color-border)] px-2.5 py-1 text-xs text-[var(--color-text-secondary)] hover:border-[var(--color-primary)] hover:text-[var(--color-primary)] disabled:opacity-50"
-                            >
-                              + {tag.name}
-                            </button>
-                          ),
-                        )}
+                        {availableTags.map((tag) => (
+                          <button
+                            key={tag.id}
+                            type="button"
+                            onClick={() => addTag(tag.id)}
+                            disabled={addingTag}
+                            className="rounded-full border border-[var(--color-border)] px-2.5 py-1 text-xs text-[var(--color-text-secondary)] hover:border-[var(--color-primary)] hover:text-[var(--color-primary)] disabled:opacity-50"
+                          >
+                            + {tag.name}
+                          </button>
+                        ))}
                       </div>
                     )}
                   </div>
@@ -1453,46 +1158,46 @@ const [
                     CURRENT TAGS
                 ================================================= */}
 
-                {task.tags.length >
-                  0 && (
+                {task.tags.length > 0 && (
                   <div className="border-t border-[var(--color-border)] pt-4">
-
                     <p className="mb-2 text-xs font-medium text-[var(--color-text-secondary)]">
                       Current tags
                     </p>
 
                     <div className="flex flex-wrap gap-2">
-                      {task.tags.map(
-                        (tag) => (
-                          <button
-                            key={tag.id}
-                            type="button"
-                            onClick={() =>
-                              removeTag(
-                                tag.id,
-                              )
-                            }
-                            className="rounded-full px-2.5 py-1 text-xs font-medium"
-                            style={{
-                              backgroundColor: `${tag.color}20`,
-                              color: tag.color,
-                            }}
-                            title="Click to remove tag"
-                          >
-                            {tag.name} ×
-                          </button>
-                        ),
-                      )}
+                      {task.tags.map((tag) => (
+                        <button
+                          key={tag.id}
+                          type="button"
+                          onClick={() => removeTag(tag.id)}
+                          className="rounded-full px-2.5 py-1 text-xs font-medium"
+                          style={{
+                            backgroundColor: `${tag.color}20`,
+                            color: tag.color,
+                          }}
+                          title="Click to remove tag"
+                        >
+                          {tag.name} ×
+                        </button>
+                      ))}
                     </div>
                   </div>
                 )}
-
-
               </div>
             )}
           </div>
         </>
       )}
+      <ConfirmModal
+        open={showDeleteModal}
+        title="Delete task?"
+        description="This task will be permanently deleted. This action cannot be undone."
+        confirmText="Delete task"
+        cancelText="Cancel"
+        loading={deleting}
+        onConfirm={deleteTask}
+        onCancel={() => setShowDeleteModal(false)}
+      />
     </article>
   );
 }

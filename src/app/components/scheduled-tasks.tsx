@@ -137,19 +137,19 @@ export function ScheduledTasks() {
   }, []);
 
   return (
-    <section className="rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-background)] p-6 shadow-sm">
-      <div className="mb-5">
-        <h2 className="text-lg font-semibold text-[var(--color-text)]">
+    <section className="rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)] p-6 shadow-[0_2px_10px_rgba(0,0,0,0.04)]">
+      <div className="mb-6">
+        <h2 className="text-xl font-semibold tracking-[-0.3px] text-[var(--color-text)]">
           Scheduled Tasks
         </h2>
 
-        <p className="mt-1 text-sm text-[var(--color-text-secondary)]">
+        <p className="mt-1.5 text-base text-[var(--color-text-secondary)]">
           Your upcoming scheduled tasks.
         </p>
       </div>
 
       {loading && (
-        <div className="flex min-h-40 items-center justify-center rounded-[var(--radius-md)] bg-[var(--color-surface)]">
+        <div className="flex min-h-40 items-center justify-center rounded-[var(--radius-md)] bg-[var(--color-background)]">
           <p className="text-sm text-[var(--color-text-muted)]">
             Loading scheduled tasks...
           </p>
@@ -157,7 +157,7 @@ export function ScheduledTasks() {
       )}
 
       {error && (
-        <div className="flex min-h-40 items-center justify-center rounded-[var(--radius-md)] bg-[var(--color-surface)]">
+        <div className="flex min-h-40 items-center justify-center rounded-[var(--radius-md)] bg-[var(--color-background)]">
           <p className="text-sm text-[var(--color-danger)]">
             {error}
           </p>
@@ -165,7 +165,7 @@ export function ScheduledTasks() {
       )}
 
       {!loading && !error && scheduledTasks.length === 0 && (
-        <div className="flex min-h-40 items-center justify-center rounded-[var(--radius-md)] bg-[var(--color-surface)]">
+        <div className="flex min-h-40 items-center justify-center rounded-[var(--radius-md)] bg-[var(--color-background)]">
           <p className="text-sm text-[var(--color-text-muted)]">
             No upcoming scheduled tasks.
           </p>
@@ -180,7 +180,7 @@ export function ScheduledTasks() {
             return (
               <div
                 key={scheduledTask.id}
-                className="flex items-center gap-4 rounded-[var(--radius-md)] border border-[var(--color-border)] p-4"
+                className="flex items-center gap-4 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-background)] p-4 shadow-sm"
               >
                 <div className="w-20 shrink-0">
                   <p className="text-xs font-medium text-[var(--color-primary)]">

@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
+import { LuRotateCcw } from 'react-icons/lu';
 import { graphqlRequest } from '@/lib/graphql-client';
 
 type TimerType = 'FOCUS_TIMER' | 'STOPWATCH';
@@ -89,6 +90,18 @@ function formatTime(totalSeconds: number) {
   return `${String(minutes).padStart(2, '0')}:${String(
     remainingSeconds,
   ).padStart(2, '0')}`;
+}
+
+function getFocusProgress(
+  totalSeconds: number,
+  remainingSeconds: number,
+) {
+  if (totalSeconds <= 0) return 0;
+
+  return Math.min(
+    1,
+    Math.max(0, 1 - remainingSeconds / totalSeconds),
+  );
 }
 
 export function Timer() {
@@ -363,6 +376,8 @@ export function Timer() {
         }
       `);
 
+      window.dispatchEvent(new Event("utimely:time-updated"));
+      
       setActiveTimer(null);
       setShowTime(false);
     });
@@ -411,7 +426,7 @@ export function Timer() {
 
   if (loading) {
     return (
-      <section className="rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-background)] p-6 shadow-sm">
+      <section className="h-full rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)] p-6 shadow-[0_2px_10px_rgba(0,0,0,0.04)]">
         <p className="text-sm text-[var(--color-text-secondary)]">
           Loading timer...
         </p>
@@ -420,26 +435,26 @@ export function Timer() {
   }
 
   return (
-    <section className="rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-background)] p-6 shadow-sm">
-      <div className="mb-6">
-        <h2 className="text-lg font-semibold text-[var(--color-text)]">
+    <section className="h-full rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)] p-6 shadow-[0_2px_10px_rgba(0,0,0,0.04)]">
+      <div className="mb-7">
+        <h2 className="text-xl font-semibold tracking-[-0.3px] text-[var(--color-text)]">
           Timer
         </h2>
 
-        <p className="mt-1 text-sm text-[var(--color-text-secondary)]">
+        <p className="mt-1.5 text-base text-[var(--color-text-secondary)]">
           Track your focus and idle time.
         </p>
       </div>
 
       {/* Tabs */}
-      <div className="mb-8 flex rounded-[var(--radius-md)] bg-[var(--color-surface)] p-1">
+      <div className="mb-8 flex rounded-[var(--radius-md)] bg-[var(--color-background)] p-1.5 ring-1 ring-inset ring-[var(--color-border)]">
         <button
           type="button"
           disabled={Boolean(activeTimer)}
           onClick={() => handleTabChange('FOCUS_TIMER')}
-          className={`flex-1 rounded-[var(--radius-sm)] px-4 py-2 text-sm font-medium transition-colors ${
+          className={`flex-1 rounded-[var(--radius-sm)] px-4 py-2.5 text-base font-medium transition-all ${
             isFocus
-              ? 'bg-[var(--color-background)] text-[var(--color-primary)] shadow-sm'
+              ? 'bg-[var(--color-surface)] text-[var(--color-primary)] shadow-sm ring-1 ring-inset ring-[var(--color-border)]'
               : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text)]'
           } disabled:cursor-not-allowed`}
         >
@@ -450,9 +465,9 @@ export function Timer() {
           type="button"
           disabled={Boolean(activeTimer)}
           onClick={() => handleTabChange('STOPWATCH')}
-          className={`flex-1 rounded-[var(--radius-sm)] px-4 py-2 text-sm font-medium transition-colors ${
+          className={`flex-1 rounded-[var(--radius-sm)] px-4 py-2.5 text-base font-medium transition-all ${
             !isFocus
-              ? 'bg-[var(--color-background)] text-[var(--color-primary)] shadow-sm'
+              ? 'bg-[var(--color-surface)] text-[var(--color-primary)] shadow-sm ring-1 ring-inset ring-[var(--color-border)]'
               : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text)]'
           } disabled:cursor-not-allowed`}
         >
@@ -462,29 +477,74 @@ export function Timer() {
 
       {/* Timer display */}
       <div className="flex min-h-64 flex-col items-center justify-center">
-        <div className="text-6xl font-semibold tracking-tight text-[var(--color-text)]">
+        <div className="text-7xl font-semibold tracking-[-0.04em] text-[var(--color-text)]">
           {isFocus && activeTimer?.status === 'RUNNING' && !showTime
             ? '••••••'
             : formatTime(displaySeconds)}
         </div>
 
         {isFocus && activeTimer?.status === 'RUNNING' && (
-          <button
-            type="button"
-            onClick={() => setShowTime((value) => !value)}
-            className="mt-4 text-sm font-medium text-[var(--color-primary)] hover:underline"
-          >
-            {showTime ? 'Hide Time' : 'Show Time'}
-          </button>
+          <>
+            <button
+              type="button"
+              onClick={() => setShowTime((value) => !value)}
+              className="mt-4 text-sm font-medium text-[var(--color-primary)] hover:underline"
+            >
+              {showTime ? 'Hide Time' : 'Show Time'}
+            </button>
+
+            <div className="mt-7 flex w-full max-w-[520px] items-center gap-1.5">
+              {Array.from({
+                length: Math.ceil(
+                  (activeTimer.durationSeconds ?? focusMinutes * 60) / 300,
+                ),
+              }).map((_, index, segments) => {
+                const totalSeconds =
+                  activeTimer.durationSeconds ?? focusMinutes * 60;
+                const progress = getFocusProgress(
+                  totalSeconds,
+                  displaySeconds,
+                );
+                const segmentStart = index / segments.length;
+                const segmentEnd = (index + 1) / segments.length;
+                const fill =
+                  progress >= segmentEnd
+                    ? 100
+                    : progress <= segmentStart
+                      ? 0
+                      : ((progress - segmentStart) /
+                          (segmentEnd - segmentStart)) *
+                        100;
+
+                return (
+                  <div
+                    key={index}
+                    className={`h-2.5 flex-1 overflow-hidden bg-[var(--color-surface-hover)] ${
+                      index === 0
+                        ? 'rounded-l-full'
+                        : index === segments.length - 1
+                          ? 'rounded-r-full'
+                          : 'rounded-sm'
+                    }`}
+                  >
+                    <div
+                      className="h-full bg-[var(--color-primary)] transition-[width] duration-1000"
+                      style={{ width: `${fill}%` }}
+                    />
+                  </div>
+                );
+              })}
+            </div>
+          </>
         )}
       </div>
 
       {/* Focus timer setup */}
       {!activeTimer && isFocus && (
-        <div className="mx-auto mb-6 flex max-w-xs items-center gap-3">
+        <div className="mx-auto mb-6 flex items-center justify-center gap-3">
           <label
             htmlFor="focus-minutes"
-            className="text-sm font-medium text-[var(--color-text-secondary)]"
+            className="text-base font-medium text-[var(--color-text-secondary)]"
           >
             Minutes
           </label>
@@ -496,30 +556,28 @@ export function Timer() {
             max={180}
             value={focusMinutes}
             onChange={handleFocusMinutesChange}
-            className="w-24 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-background)] px-3 py-2 text-center text-sm text-[var(--color-text)] outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary-light)]"
+            className="w-24 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-background)] px-3 py-2 text-center text-base text-[var(--color-text)] outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary-light)]"
           />
+
+          <button
+            type="button"
+            onClick={handleStartFocus}
+            disabled={actionLoading}
+            className="rounded-[var(--radius-md)] bg-[var(--color-primary)] px-5 py-2.5 text-base font-medium text-white transition-colors hover:bg-[var(--color-primary-hover)] disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            Start
+          </button>
         </div>
       )}
 
       {/* Actions */}
       <div className="flex flex-wrap justify-center gap-3">
-        {!activeTimer && isFocus && (
-          <button
-            type="button"
-            onClick={handleStartFocus}
-            disabled={actionLoading}
-            className="rounded-[var(--radius-md)] bg-[var(--color-primary)] px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[var(--color-primary-hover)] disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            Start
-          </button>
-        )}
-
         {!activeTimer && !isFocus && (
           <button
             type="button"
             onClick={handleStartStopwatch}
             disabled={actionLoading}
-            className="rounded-[var(--radius-md)] bg-[var(--color-primary)] px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[var(--color-primary-hover)] disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-[var(--radius-md)] bg-[var(--color-primary)] px-5 py-2.5 text-base font-medium text-white transition-colors hover:bg-[var(--color-primary-hover)] disabled:cursor-not-allowed disabled:opacity-50"
           >
             Start
           </button>
@@ -530,7 +588,7 @@ export function Timer() {
             type="button"
             onClick={handlePause}
             disabled={actionLoading}
-            className="rounded-[var(--radius-md)] bg-[var(--color-primary)] px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[var(--color-primary-hover)] disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-[var(--radius-md)] bg-[var(--color-primary)] px-5 py-2.5 text-base font-medium text-white transition-colors hover:bg-[var(--color-primary-hover)] disabled:cursor-not-allowed disabled:opacity-50"
           >
             Pause
           </button>
@@ -541,7 +599,7 @@ export function Timer() {
             type="button"
             onClick={handleResume}
             disabled={actionLoading}
-            className="rounded-[var(--radius-md)] bg-[var(--color-primary)] px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[var(--color-primary-hover)] disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-[var(--radius-md)] bg-[var(--color-primary)] px-5 py-2.5 text-base font-medium text-white transition-colors hover:bg-[var(--color-primary-hover)] disabled:cursor-not-allowed disabled:opacity-50"
           >
             Resume
           </button>
@@ -552,7 +610,7 @@ export function Timer() {
             type="button"
             onClick={handleSave}
             disabled={actionLoading}
-            className="rounded-[var(--radius-md)] border border-[var(--color-border)] px-5 py-2.5 text-sm font-medium text-[var(--color-text)] transition-colors hover:bg-[var(--color-surface-hover)] disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-[var(--radius-md)] border border-[var(--color-border)] px-5 py-2.5 text-base font-medium text-[var(--color-text)] transition-colors hover:bg-[var(--color-surface-hover)] disabled:cursor-not-allowed disabled:opacity-50"
           >
             Save
           </button>
@@ -563,9 +621,10 @@ export function Timer() {
             type="button"
             onClick={handleCancel}
             disabled={actionLoading}
-            className="rounded-[var(--radius-md)] border border-[var(--color-border)] px-5 py-2.5 text-sm font-medium text-[var(--color-text-secondary)] transition-colors hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text)] disabled:cursor-not-allowed disabled:opacity-50"
+            className="inline-flex items-center gap-2 rounded-[var(--radius-md)] border border-[var(--color-border)] px-5 py-2.5 text-base font-medium text-[var(--color-text-secondary)] transition-colors hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text)] disabled:cursor-not-allowed disabled:opacity-50"
           >
-            Cancel
+            <LuRotateCcw size={16} strokeWidth={1.8} />
+            Reset
           </button>
         )}
       </div>

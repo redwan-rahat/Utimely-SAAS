@@ -104,14 +104,14 @@ export function TodayTasks() {
   }, []);
 
   return (
-    <section className="rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-background)] p-6 shadow-sm">
-      <div className="mb-5 flex items-center justify-between gap-4">
+    <section className="rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)] p-6 shadow-[0_2px_10px_rgba(0,0,0,0.04)]">
+      <div className="mb-6 flex items-center justify-between gap-4">
         <div>
-          <h2 className="text-lg font-semibold text-[var(--color-text)]">
+          <h2 className="text-xl font-semibold tracking-[-0.3px] text-[var(--color-text)]">
             Today&apos;s Tasks
           </h2>
 
-          <p className="mt-1 text-sm text-[var(--color-text-secondary)]">
+          <p className="mt-1.5 text-base text-[var(--color-text-secondary)]">
             Tasks scheduled for today.
           </p>
         </div>
@@ -124,7 +124,7 @@ export function TodayTasks() {
       </div>
 
       {loading && (
-        <div className="flex min-h-40 items-center justify-center rounded-[var(--radius-md)] bg-[var(--color-surface)]">
+        <div className="flex min-h-40 items-center justify-center rounded-[var(--radius-md)] bg-[var(--color-background)]">
           <p className="text-sm text-[var(--color-text-muted)]">
             Loading tasks...
           </p>
@@ -132,13 +132,13 @@ export function TodayTasks() {
       )}
 
       {error && (
-        <div className="flex min-h-40 items-center justify-center rounded-[var(--radius-md)] bg-[var(--color-surface)]">
+        <div className="flex min-h-40 items-center justify-center rounded-[var(--radius-md)] bg-[var(--color-background)]">
           <p className="text-sm text-[var(--color-danger)]">{error}</p>
         </div>
       )}
 
       {!loading && !error && tasks.length === 0 && (
-        <div className="flex min-h-40 items-center justify-center rounded-[var(--radius-md)] bg-[var(--color-surface)]">
+        <div className="flex min-h-40 items-center justify-center rounded-[var(--radius-md)] bg-[var(--color-background)]">
           <p className="text-sm text-[var(--color-text-muted)]">
             No tasks scheduled for today.
           </p>
@@ -150,7 +150,7 @@ export function TodayTasks() {
           {tasks.map((task) => (
             <div
               key={task.id}
-              className="rounded-[var(--radius-md)] border border-[var(--color-border)] p-4"
+              className="rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-background)] p-4 shadow-sm"
             >
               <div className="flex items-start gap-3">
                 <div className="mt-1 h-4 w-4 shrink-0 rounded border border-[var(--color-border-hover)]" />

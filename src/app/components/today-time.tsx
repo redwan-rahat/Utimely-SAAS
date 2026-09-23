@@ -70,23 +70,19 @@ export function TodayTime() {
       try {
         setError(null);
 
-        const data = await graphqlRequest<TimeSessionsResponse>(
-          TIME_SESSIONS_QUERY,
-        );
+        const data =
+          await graphqlRequest<TimeSessionsResponse>(TIME_SESSIONS_QUERY);
 
         const todaySessions = data.timeSessions.filter(
           (session) =>
             isToday(session.startedAt) &&
-            (session.type === 'FOCUS_TIMER' ||
-              session.type === 'STOPWATCH'),
+            (session.type === 'FOCUS_TIMER' || session.type === 'STOPWATCH'),
         );
 
         setSessions(todaySessions);
       } catch (err) {
         setError(
-          err instanceof Error
-            ? err.message
-            : 'Failed to load today&apos;s time',
+          err instanceof Error ? err.message : "Failed to load today's time",
         );
       } finally {
         setLoading(false);
@@ -94,6 +90,16 @@ export function TodayTime() {
     };
 
     void loadTimeSessions();
+
+    const handleTimeUpdated = () => {
+      void loadTimeSessions();
+    };
+
+    window.addEventListener('utimely:time-updated', handleTimeUpdated);
+
+    return () => {
+      window.removeEventListener('utimely:time-updated', handleTimeUpdated);
+    };
   }, []);
 
   const focusSessions = sessions.filter(
@@ -105,19 +111,19 @@ export function TodayTime() {
   );
 
   return (
-   <section className="h-full rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-background)] p-6 shadow-sm">
-      <div className="mb-5">
-        <h2 className="text-lg font-semibold text-[var(--color-text)]">
+    <section className="h-full rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)] p-6 shadow-[0_2px_10px_rgba(0,0,0,0.04)]">
+      <div className="mb-6">
+        <h2 className="text-xl font-semibold tracking-[-0.3px] text-[var(--color-text)]">
           Today&apos;s Time
         </h2>
 
-        <p className="mt-1 text-sm text-[var(--color-text-secondary)]">
+        <p className="mt-1.5 text-base text-[var(--color-text-secondary)]">
           Your focus and stopwatch sessions today.
         </p>
       </div>
 
       {loading && (
-        <div className="flex min-h-40 items-center justify-center rounded-[var(--radius-md)] bg-[var(--color-surface)]">
+        <div className="flex min-h-40 items-center justify-center rounded-[var(--radius-md)] bg-[var(--color-background)]">
           <p className="text-sm text-[var(--color-text-muted)]">
             Loading time...
           </p>
@@ -125,15 +131,13 @@ export function TodayTime() {
       )}
 
       {error && (
-        <div className="flex min-h-40 items-center justify-center rounded-[var(--radius-md)] bg-[var(--color-surface)]">
-          <p className="text-sm text-[var(--color-danger)]">
-            {error}
-          </p>
+        <div className="flex min-h-40 items-center justify-center rounded-[var(--radius-md)] bg-[var(--color-background)]">
+          <p className="text-sm text-[var(--color-danger)]">{error}</p>
         </div>
       )}
 
       {!loading && !error && sessions.length === 0 && (
-        <div className="flex min-h-40 items-center justify-center rounded-[var(--radius-md)] bg-[var(--color-surface)]">
+        <div className="flex min-h-40 items-center justify-center rounded-[var(--radius-md)] bg-[var(--color-background)]">
           <p className="text-sm text-[var(--color-text-muted)]">
             No time recorded today.
           </p>
@@ -141,11 +145,11 @@ export function TodayTime() {
       )}
 
       {!loading && !error && sessions.length > 0 && (
-      <div className="max-h-[420px] space-y-6 overflow-y-auto overflow-x-hidden pr-2">
+        <div className="max-h-[420px] space-y-5 overflow-y-auto overflow-x-hidden pr-1">
           {/* Focus Timer */}
           <div>
             <div className="mb-3 flex items-center justify-between">
-              <h3 className="text-sm font-medium text-[var(--color-text)]">
+              <h3 className="text-base font-semibold text-[var(--color-text)]">
                 Focus Timer
               </h3>
 
@@ -160,13 +164,13 @@ export function TodayTime() {
                 {focusSessions.map((session) => (
                   <div
                     key={session.id}
-                    className="flex items-center justify-between rounded-[var(--radius-md)] bg-[var(--color-surface)] px-3 py-2.5"
+                    className="flex items-center justify-between rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-background)] px-3.5 py-3"
                   >
                     <span className="text-sm text-[var(--color-text-secondary)]">
                       Focus
                     </span>
 
-                    <span className="text-sm font-medium text-[var(--color-text)]">
+                    <span className="text-base font-semibold text-[var(--color-text)]">
                       {formatDuration(session.duration)}
                     </span>
                   </div>
@@ -182,7 +186,7 @@ export function TodayTime() {
           {/* Stopwatch */}
           <div>
             <div className="mb-3 flex items-center justify-between">
-              <h3 className="text-sm font-medium text-[var(--color-text)]">
+              <h3 className="text-base font-semibold text-[var(--color-text)]">
                 Stopwatch
               </h3>
 
@@ -197,13 +201,13 @@ export function TodayTime() {
                 {stopwatchSessions.map((session) => (
                   <div
                     key={session.id}
-                    className="flex items-center justify-between rounded-[var(--radius-md)] bg-[var(--color-surface)] px-3 py-2.5"
+                    className="flex items-center justify-between rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-background)] px-3.5 py-3"
                   >
                     <span className="text-sm text-[var(--color-text-secondary)]">
                       Stopwatch
                     </span>
 
-                    <span className="text-sm font-medium text-[var(--color-text)]">
+                    <span className="text-base font-semibold text-[var(--color-text)]">
                       {formatDuration(session.duration)}
                     </span>
                   </div>
