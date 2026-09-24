@@ -221,7 +221,10 @@ function getApplicableFilter(
     color: string;
   }>,
 ) {
-  let applicable: CalendarFilter | null = null;
+  let applicable: {
+    thresholdMinutes: number;
+    color: string;
+  } | null = null;
 
   for (const filter of filters) {
     if (minutes >= filter.thresholdMinutes) {

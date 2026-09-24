@@ -1388,7 +1388,7 @@ function TagSidebar({
 
           <button
             type="button"
-            onClick={() => setShowCreateTag((value) => !value)}
+            onClick={() => setShowCreateTag(!showCreateTag)}
             className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-secondary)] shadow-sm transition-colors hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text)]"
           >
             <Plus size={16} strokeWidth={1.8} />
