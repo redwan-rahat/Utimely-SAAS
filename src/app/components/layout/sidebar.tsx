@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useState } from "react";
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { useState } from 'react';
 import {
   LuLayoutDashboard,
   LuCalendarDays,
@@ -13,23 +13,24 @@ import {
   LuLogOut,
   LuMenu,
   LuX,
-} from "react-icons/lu";
+} from 'react-icons/lu';
+import { authClient } from '@/lib/auth-client';
 
 export default function Sidebar() {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  const today = new Intl.DateTimeFormat("en-CA").format(new Date());
+  const today = new Intl.DateTimeFormat('en-CA').format(new Date());
 
   const navigation = [
     {
-      name: "Dashboard",
-      href: "/dashboard",
+      name: 'Dashboard',
+      href: '/dashboard',
       icon: LuLayoutDashboard,
     },
     {
-      name: "Calendar",
-      href: "/dashboard/calendar",
+      name: 'Calendar',
+      href: '/dashboard/calendar',
       icon: LuCalendarDays,
     },
     {
@@ -38,24 +39,24 @@ export default function Sidebar() {
       icon: LuListChecks,
     },
     {
-      name: "All Tasks",
-      href: "/dashboard/tasks",
+      name: 'All Tasks',
+      href: '/dashboard/tasks',
       icon: LuLayers3,
     },
     {
-      name: "Analytics",
-      href: "/dashboard/analytics",
+      name: 'Analytics',
+      href: '/dashboard/analytics',
       icon: LuChartNoAxesColumn,
     },
   ];
 
   const isActive = (item: (typeof navigation)[number]) => {
-    if (item.name === "Dashboard") {
-      return pathname === "/dashboard";
+    if (item.name === 'Dashboard') {
+      return pathname === '/dashboard';
     }
 
-    if (item.name === "Calendar") {
-      return pathname === "/dashboard/calendar";
+    if (item.name === 'Calendar') {
+      return pathname === '/dashboard/calendar';
     }
 
     if (item.name === "Today's Tasks") {
@@ -63,6 +64,11 @@ export default function Sidebar() {
     }
 
     return pathname.startsWith(item.href);
+  };
+
+  const handleLogout = async () => {
+    await authClient.signOut();
+    window.location.href = '/auth';
   };
 
   return (
@@ -87,7 +93,7 @@ export default function Sidebar() {
           lg:w-64
 
           /* Tablet / mobile */
-          ${mobileOpen ? "w-64" : "w-16"}
+          ${mobileOpen ? 'w-64' : 'w-16'}
         `}
       >
         {/* ========================================
@@ -98,7 +104,7 @@ export default function Sidebar() {
           className={`
             flex h-20 shrink-0 items-center
             lg:hidden
-            ${mobileOpen ? "justify-between px-5" : "justify-center"}
+            ${mobileOpen ? 'justify-between px-5' : 'justify-center'}
           `}
         >
           {mobileOpen ? (
@@ -154,7 +160,7 @@ export default function Sidebar() {
         <nav
           className={`
             flex-1
-            ${mobileOpen ? "px-4" : "px-3"}
+            ${mobileOpen ? 'px-4' : 'px-3'}
             lg:px-4
           `}
         >
@@ -167,6 +173,7 @@ export default function Sidebar() {
                 <Link
                   key={item.name}
                   href={item.href}
+                  prefetch={false}
                   onClick={() => setMobileOpen(false)}
                   title={!mobileOpen ? item.name : undefined}
                   className={`
@@ -174,30 +181,22 @@ export default function Sidebar() {
                     text-[15px] font-medium
                     transition-colors
 
-                    ${
-                      mobileOpen
-                        ? "gap-3 px-3"
-                        : "justify-center px-0"
-                    }
+                    ${mobileOpen ? 'gap-3 px-3' : 'justify-center px-0'}
 
                     ${
                       active
-                        ? "bg-primary text-white"
-                        : "text-text-secondary hover:bg-surface-hover hover:text-text"
+                        ? 'bg-primary text-white'
+                        : 'text-text-secondary hover:bg-surface-hover hover:text-text'
                     }
 
                     lg:justify-start lg:gap-3 lg:px-3
                   `}
                 >
-                  <Icon
-                    size={19}
-                    strokeWidth={1.8}
-                    className="shrink-0"
-                  />
+                  <Icon size={19} strokeWidth={1.8} className="shrink-0" />
 
                   <span
                     className={`
-                      ${mobileOpen ? "block" : "hidden"}
+                      ${mobileOpen ? 'block' : 'hidden'}
                       lg:block
                     `}
                   >
@@ -216,7 +215,7 @@ export default function Sidebar() {
         <div
           className={`
             shrink-0 pb-5
-            ${mobileOpen ? "px-4" : "px-3"}
+            ${mobileOpen ? 'px-4' : 'px-3'}
             lg:px-4
           `}
         >
@@ -225,36 +224,28 @@ export default function Sidebar() {
           <Link
             href="/dashboard/settings"
             onClick={() => setMobileOpen(false)}
-            title={!mobileOpen ? "Settings" : undefined}
+            title={!mobileOpen ? 'Settings' : undefined}
             className={`
               mb-1 flex h-10 items-center rounded-md
               text-[15px] font-medium
               transition-colors
 
-              ${
-                mobileOpen
-                  ? "gap-3 px-3"
-                  : "justify-center px-0"
-              }
+              ${mobileOpen ? 'gap-3 px-3' : 'justify-center px-0'}
 
               ${
-                pathname.startsWith("/dashboard/settings")
-                  ? "bg-primary text-white"
-                  : "text-text-secondary hover:bg-surface-hover hover:text-text"
+                pathname.startsWith('/dashboard/settings')
+                  ? 'bg-primary text-white'
+                  : 'text-text-secondary hover:bg-surface-hover hover:text-text'
               }
 
               lg:justify-start lg:gap-3 lg:px-3
             `}
           >
-            <LuSettings
-              size={19}
-              strokeWidth={1.8}
-              className="shrink-0"
-            />
+            <LuSettings size={19} strokeWidth={1.8} className="shrink-0" />
 
             <span
               className={`
-                ${mobileOpen ? "block" : "hidden"}
+                ${mobileOpen ? 'block' : 'hidden'}
                 lg:block
               `}
             >
@@ -266,7 +257,8 @@ export default function Sidebar() {
 
           <button
             type="button"
-            title={!mobileOpen ? "Logout" : undefined}
+            onClick={handleLogout}
+            title={!mobileOpen ? 'Logout' : undefined}
             className={`
               flex h-10 w-full items-center rounded-md
               text-[15px] font-medium
@@ -274,24 +266,16 @@ export default function Sidebar() {
               transition-colors
               hover:bg-surface-hover hover:text-text
 
-              ${
-                mobileOpen
-                  ? "gap-3 px-3"
-                  : "justify-center px-0"
-              }
+              ${mobileOpen ? 'gap-3 px-3' : 'justify-center px-0'}
 
               lg:justify-start lg:gap-3 lg:px-3
             `}
           >
-            <LuLogOut
-              size={19}
-              strokeWidth={1.8}
-              className="shrink-0"
-            />
+            <LuLogOut size={19} strokeWidth={1.8} className="shrink-0" />
 
             <span
               className={`
-                ${mobileOpen ? "block" : "hidden"}
+                ${mobileOpen ? 'block' : 'hidden'}
                 lg:block
               `}
             >
