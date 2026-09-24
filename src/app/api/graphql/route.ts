@@ -1,19 +1,20 @@
 import { createYoga } from "graphql-yoga";
-
 import { schema } from "@/graphql/schema";
-
 import { createContext } from "@/graphql/context";
 
-const { handleRequest } = createYoga({
+const yoga = createYoga({
   schema,
   graphqlEndpoint: "/api/graphql",
+  fetchAPI: {
+    Response,
+  },
   context: createContext,
 });
 
-export const GET = (request: Request) => {
-  return handleRequest(request, {});
-};
+export async function GET(request: Request) {
+  return yoga.handleRequest(request, {});
+}
 
-export const POST = (request: Request) => {
-  return handleRequest(request, {});
-};
+export async function POST(request: Request) {
+  return yoga.handleRequest(request, {});
+}
