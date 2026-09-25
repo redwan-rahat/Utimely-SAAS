@@ -15,6 +15,7 @@ import {
   LuX,
 } from 'react-icons/lu';
 import { authClient } from '@/lib/auth-client';
+import Image from 'next/image';
 
 export default function Sidebar() {
   const pathname = usePathname();
@@ -148,8 +149,10 @@ export default function Sidebar() {
             href="/"
             className="text-[24px] font-bold tracking-[-0.3px]"
           >
-            <span className="text-text">U</span>
-            <span className="text-primary">timely</span>
+          <Image alt="utimely Logo" className="w-[104px]" src="/utimely.webp" height={500} width={500}></Image>
+            
+            {/* <span className="text-text">U</span>
+            <span className="text-primary">timely</span> */}
           </Link>
         </div>
 

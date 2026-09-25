@@ -1,13 +1,21 @@
-"use client";
-import { FiMenu } from "react-icons/fi";
-import { IoMdClose } from "react-icons/io";
-
-import Link from "next/link";
-import { Menu, X } from "lucide-react";
-import { useEffect, useState } from "react";
+'use client';
+import { FiMenu } from 'react-icons/fi';
+import { IoMdClose } from 'react-icons/io';
+import { usePathname } from 'next/navigation';
+import Link from 'next/link';
+import { Menu, X } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import Image from 'next/image';
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
+
+    const pathname = usePathname();
+
+  const hideNavbar =
+    pathname.startsWith('/dashboard') ||
+    pathname === '/sign-in' ||
+    pathname === '/sign-up';
 
   const closeMenu = () => {
     setIsOpen(false);
@@ -15,25 +23,30 @@ export default function Navbar() {
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
+      if (event.key === 'Escape') {
         closeMenu();
       }
     };
 
     if (isOpen) {
-      document.addEventListener("keydown", handleKeyDown);
+      document.addEventListener('keydown', handleKeyDown);
     }
 
     return () => {
-      document.removeEventListener("keydown", handleKeyDown);
+      document.removeEventListener('keydown', handleKeyDown);
     };
   }, [isOpen]);
+
+
+  if (hideNavbar) {
+  return null;
+}
 
   return (
     <>
       {/* Fixed Navbar */}
       <header className="fixed inset-x-0 top-0 z-[9999] border-b border-border bg-white">
-        <div className="mx-auto w-full max-w-[1200px] px-5 sm:px-6 lg:px-8">
+        <div className="mx-auto w-full max-w-[1200px] px-5 md:px-6 lg:px-8">
           <div className="flex h-[72px] items-center justify-between">
             {/* Logo */}
             <Link
@@ -41,8 +54,15 @@ export default function Navbar() {
               onClick={closeMenu}
               className="text-[24px] font-bold leading-heading tracking-heading"
             >
-              <span className="text-black">U</span>
-              <span className="text-primary">timely</span>
+              {/* <span className="text-black">U</span>
+              <span className="text-primary">timely</span> */}
+              <Image
+                alt="utimely Logo"
+                className="w-[104px]"
+                src="/utimely.webp"
+                height={500}
+                width={500}
+              ></Image>
             </Link>
 
             {/* Desktop Navigation */}
@@ -104,16 +124,16 @@ export default function Navbar() {
             <button
               type="button"
               aria-label={
-                isOpen ? "Close navigation menu" : "Open navigation menu"
+                isOpen ? 'Close navigation menu' : 'Open navigation menu'
               }
               aria-expanded={isOpen}
               onClick={() => setIsOpen((prev) => !prev)}
               className="flex h-10 w-10 items-center justify-center rounded-md text-text transition-colors hover:bg-surface md:hidden"
             >
               {isOpen ? (
-                <IoMdClose     className="text-4xl"/>
+                <IoMdClose className="text-4xl" />
               ) : (
-                <FiMenu    className="text-3xl"/>
+                <FiMenu className="text-3xl" />
               )}
             </button>
           </div>

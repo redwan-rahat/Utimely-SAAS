@@ -1,7 +1,7 @@
 export default function ProductDemo() {
   return (
-    <section className="bg-background pt-28 sm:pt-32 lg:pt-36">
-      <div className="mx-auto w-full max-w-[1200px] px-5 sm:px-6 lg:px-8">
+    <section className="bg-background pt-32 sm:pt-44 lg:pt-48">
+      <div className="mx-auto w-full max-w-[1200px] ">
         {/* Heading */}
         <div className="sm:flex items-end gap-6 justify-between">
           <h2 className="sm:text-h2 max-w-[600px] font-semibold leading-h2 tracking-h2 text-text text-4xl sm:text-5xl">
