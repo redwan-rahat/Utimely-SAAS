@@ -110,7 +110,7 @@ export default function Sidebar() {
           {mobileOpen ? (
             <>
               <Link
-                href="/dashboard"
+                href="/"
                 onClick={() => setMobileOpen(false)}
                 className="text-[24px] font-bold tracking-[-0.3px]"
               >
@@ -145,7 +145,7 @@ export default function Sidebar() {
 
         <div className="hidden h-20 shrink-0 items-center px-6 lg:flex">
           <Link
-            href="/dashboard"
+            href="/"
             className="text-[24px] font-bold tracking-[-0.3px]"
           >
             <span className="text-text">U</span>
