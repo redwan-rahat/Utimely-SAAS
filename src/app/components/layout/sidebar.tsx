@@ -68,7 +68,7 @@ export default function Sidebar() {
 
   const handleLogout = async () => {
     await authClient.signOut();
-    window.location.href = '/auth';
+    window.location.href = '/';
   };
 
   return (

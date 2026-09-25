@@ -204,7 +204,7 @@ export default function SettingsPage() {
         );
       }
 
-      router.push('/login');
+      router.push('/sign-in');
       router.refresh();
     } catch (error) {
       setError(

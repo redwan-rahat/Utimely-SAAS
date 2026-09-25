@@ -93,7 +93,7 @@ export default function Navbar() {
               </Link>
 
               <Link
-                href="/sign-in"
+                href="/sign-up"
                 className="rounded-md bg-primary px-4 py-2.5 text-nav leading-body tracking-body font-medium text-white transition-colors hover:bg-primary-hover"
               >
                 Start your timer
