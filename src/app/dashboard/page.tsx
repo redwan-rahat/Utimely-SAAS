@@ -1,9 +1,9 @@
 'use client';
 
 import { LuRefreshCw } from 'react-icons/lu';
-import { TodayTasks } from '../components/today-tasks';
-import { ScheduledTasks } from '../components/scheduled-tasks';
-import { TodayTime } from '../components/today-time';
+import { TodayTasks } from '../components/dashboard/today-tasks';
+import { ScheduledTasks } from '../components/dashboard/scheduled-tasks';
+import { TodayTime } from '../components/dashboard/today-time';
 import { Timer } from './timer';
 
 export default function DashboardPage() {

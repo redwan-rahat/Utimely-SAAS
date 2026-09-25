@@ -1,5 +1,6 @@
 import Link from "next/link";
 import HeroFeatures from "./HeroFeatures";
+import ProductDemo from "./ProductDemo";
 
 export default function HeroSection() {
   return (
@@ -9,7 +10,7 @@ export default function HeroSection() {
         <div className="grid min-h-[460px] items-center gap-10 py-16 sm:py-20 lg:grid-cols-[1.55fr_0.65fr] lg:gap-16 lg:py-24">
           {/* Left */}
           <div>
-            <h1 className="max-w-[760px] text-[48px] font-semibold leading-heading tracking-heading text-black sm:text-[60px] lg:text-[76px]">
+            <h1 className="max-w-[760px] text-[48px] font-semibold leading-heading tracking-heading text-text sm:text-[60px] lg:text-[76px]">
               Build a better
               <br />
               relationship with
@@ -21,16 +22,16 @@ export default function HeroSection() {
             <div className="mt-8 flex flex-wrap items-center gap-3">
               <Link
                 href="/sign-in"
-                className="rounded-md bg-primary px-5 py-3.5 text-button leading-body tracking-body font-medium text-white transition-colors hover:bg-primary-hover"
+                className="rounded-md bg-primary px-5 py-3.5 text-button font-medium leading-body tracking-body text-white transition-colors hover:bg-primary-hover"
               >
                 Start your timer
               </Link>
 
               <a
-                href="#why-utimately"
-                className="rounded-md bg-secondary px-5 py-3.5 text-button leading-body tracking-body font-medium text-text transition-colors hover:bg-secondary-hover"
+                href="#features"
+                className="rounded-md bg-secondary px-5 py-3.5 text-button font-medium leading-body tracking-body text-text transition-colors hover:bg-secondary-hover"
               >
-                Why choose us
+                See how it works
               </a>
             </div>
           </div>
@@ -45,7 +46,13 @@ export default function HeroSection() {
         </div>
 
         {/* Features */}
-        <HeroFeatures />
+        <div id="features">
+          <HeroFeatures />
+        </div>
+
+        <div id="video-showcase">
+        <ProductDemo></ProductDemo>
+        </div>
       </div>
     </section>
   );

@@ -1,4 +1,4 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 :root {
   /* Base */
@@ -6,7 +6,7 @@
   --foreground: #171717;
 
   /* Font */
-  --font-inter: "Inter", sans-serif;
+  --font-inter: 'Inter', sans-serif;
 
   /* Colors */
   --primary: #6a5bfb;
@@ -73,8 +73,10 @@
   --leading-body: 1.5;
 
   --tracking-heading: -0.3px;
-  --leading-heading: 1.1;
+  --leading-heading: 1.05;
 
+  --tracking-h2: -0.5px;
+  --leading-h2: 1.1;
   /* Radius */
   --radius-sm: 6px;
   --radius-md: 10px;
