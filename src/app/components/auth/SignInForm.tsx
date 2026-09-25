@@ -1,36 +1,41 @@
-"use client";
+'use client';
 
-import Link from "next/link";
-import { Eye, EyeOff } from "lucide-react";
-import { FormEvent, useState } from "react";
-import { authClient } from "@/lib/auth-client";
+import Link from 'next/link';
+import { Eye, EyeOff } from 'lucide-react';
+import { FormEvent, useState } from 'react';
+import { authClient } from '@/lib/auth-client';
+import { useRouter } from 'next/navigation';
 
 export default function SignInForm() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
 
   const [showPassword, setShowPassword] = useState(false);
 
-  const [error, setError] = useState("");
+  const router = useRouter();
+
+  const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    setError("");
+    setError('');
     setIsLoading(true);
 
     const result = await authClient.signIn.email({
       email,
       password,
-      callbackURL: "/dashboard",
+      callbackURL: '/dashboard',
     });
 
     if (result.error) {
-      setError(result.error.message || "Invalid email or password.");
+      setError(result.error.message || 'Invalid email or password.');
       setIsLoading(false);
       return;
     }
+
+    router.push('/dashboard');
 
     // Better Auth will redirect using callbackURL.
   }
@@ -79,7 +84,7 @@ export default function SignInForm() {
         <div className="relative">
           <input
             id="password"
-            type={showPassword ? "text" : "password"}
+            type={showPassword ? 'text' : 'password'}
             value={password}
             onChange={(event) => setPassword(event.target.value)}
             placeholder="Enter your password"
@@ -90,7 +95,7 @@ export default function SignInForm() {
 
           <button
             type="button"
-            aria-label={showPassword ? "Hide password" : "Show password"}
+            aria-label={showPassword ? 'Hide password' : 'Show password'}
             onClick={() => setShowPassword((previous) => !previous)}
             className="absolute right-0 top-0 flex h-[48px] w-12 items-center justify-center text-text-muted transition-colors hover:text-text"
           >
@@ -116,10 +121,8 @@ export default function SignInForm() {
         disabled={isLoading}
         className="h-[50px] w-full rounded-md bg-primary px-5 text-[16px] font-medium text-white transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-60"
       >
-        {isLoading ? "Signing in..." : "Sign in"}
+        {isLoading ? 'Signing in...' : 'Sign in'}
       </button>
-
-
     </form>
   );
 }
