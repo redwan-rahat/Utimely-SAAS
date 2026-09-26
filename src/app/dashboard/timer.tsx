@@ -117,8 +117,7 @@ function getFocusProgress(totalSeconds: number, remainingSeconds: number) {
 
 export function Timer() {
   const [activeTimer, setActiveTimer] = useState<ActiveTimer | null>(null);
-  const [selectedType, setSelectedType] =
-    useState<TimerType>('FOCUS_TIMER');
+  const [selectedType, setSelectedType] = useState<TimerType>('FOCUS_TIMER');
 
   const [focusMinutes, setFocusMinutes] = useState(45);
   const [showTime, setShowTime] = useState(false);
@@ -173,9 +172,7 @@ export function Timer() {
    */
   useEffect(() => {
     if (!activeTimer) {
-      setDisplaySeconds(
-        selectedType === 'FOCUS_TIMER' ? focusMinutes * 60 : 0,
-      );
+      setDisplaySeconds(selectedType === 'FOCUS_TIMER' ? focusMinutes * 60 : 0);
       return;
     }
 
@@ -245,36 +242,40 @@ export function Timer() {
 
       notifiedTimerIdRef.current = timerId;
 
-try {
-  if (
-    typeof Notification !== 'undefined' &&
-    Notification.permission === 'granted'
-  ) {
-    new Notification('Focus timer finished', {
-      body: 'Your focus session is complete.',
-      icon: '/utimely.webp',
-    });
-  }
-} catch (error) {
-  console.warn('Unable to show timer notification:', error);
-}
+      // 1. FIRST: let the server finalize the expired timer.
+      await loadActiveTimer();
 
+      // 2. Immediately tell Today's Time to reload.
+      window.dispatchEvent(new Event('utimely:time-updated'));
+
+      // 3. Notification is optional.
+      try {
+        if (
+          typeof Notification !== 'undefined' &&
+          Notification.permission === 'granted'
+        ) {
+          new Notification('Focus timer finished', {
+            body: 'Your focus session is complete.',
+            icon: '/utimely.webp',
+          });
+        }
+      } catch (error) {
+        console.warn('Unable to show timer notification:', error);
+      }
+
+      // 4. Alarm is optional too.
       try {
         if (!alarmRef.current) {
           alarmRef.current = new Audio('/utimely_notification.mp3');
         }
 
         alarmRef.current.currentTime = 0;
-        await alarmRef.current.play();
+        void alarmRef.current.play().catch((error) => {
+          console.warn('Unable to play timer alarm:', error);
+        });
       } catch (error) {
         console.warn('Unable to play timer alarm:', error);
       }
-
-      // This causes the server to finalize the expired timer.
-      await loadActiveTimer();
-
-      // Tell Today's Time to fetch the newly-created session.
-      window.dispatchEvent(new Event('utimely:time-updated'));
     },
     [loadActiveTimer],
   );
@@ -887,9 +888,7 @@ try {
       console.warn('Unable to open mini timer:', err);
 
       setError(
-        err instanceof Error
-          ? err.message
-          : 'Unable to open the mini timer.',
+        err instanceof Error ? err.message : 'Unable to open the mini timer.',
       );
     }
   };
@@ -968,11 +967,9 @@ try {
      * Focus Timer.
      */
     if (activeTimer.type === 'FOCUS_TIMER') {
-      const totalSeconds =
-        activeTimer.durationSeconds ?? focusMinutes * 60;
+      const totalSeconds = activeTimer.durationSeconds ?? focusMinutes * 60;
 
-      const progress =
-        getFocusProgress(totalSeconds, displaySeconds) * 100;
+      const progress = getFocusProgress(totalSeconds, displaySeconds) * 100;
 
       progressFill.style.width = `${progress}%`;
 
@@ -1046,15 +1043,9 @@ try {
           progressElement.classList.add('hidden');
           timeElement.textContent = formatTime(displaySeconds);
 
-          visibilityButton.setAttribute(
-            'aria-label',
-            'Hide time',
-          );
+          visibilityButton.setAttribute('aria-label', 'Hide time');
 
-          visibilityButton.setAttribute(
-            'title',
-            'Hide time',
-          );
+          visibilityButton.setAttribute('title', 'Hide time');
 
           visibilityButton.innerHTML = `
             <svg
@@ -1077,15 +1068,9 @@ try {
           timeElement.classList.add('hidden');
           progressElement.classList.remove('hidden');
 
-          visibilityButton.setAttribute(
-            'aria-label',
-            'Show time',
-          );
+          visibilityButton.setAttribute('aria-label', 'Show time');
 
-          visibilityButton.setAttribute(
-            'title',
-            'Show time',
-          );
+          visibilityButton.setAttribute('title', 'Show time');
 
           visibilityButton.innerHTML = `
             <svg
@@ -1285,10 +1270,7 @@ try {
                 const totalSeconds =
                   activeTimer.durationSeconds ?? focusMinutes * 60;
 
-                const progress = getFocusProgress(
-                  totalSeconds,
-                  displaySeconds,
-                );
+                const progress = getFocusProgress(totalSeconds, displaySeconds);
 
                 const segmentStart = index / segments.length;
                 const segmentEnd = (index + 1) / segments.length;

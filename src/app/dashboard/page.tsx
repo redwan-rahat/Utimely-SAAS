@@ -29,8 +29,8 @@ export default function DashboardPage() {
             Good morning
           </h1>
 
-          <p className="mt-2 text-base text-[var(--color-text-secondary)]">
-            Stay focused and make progress on what matters today.
+          <p className="mt-2 text-sm text-[var(--color-text-secondary)]">
+            Let’s focus on what actually matters.
           </p>
         </div>
 
