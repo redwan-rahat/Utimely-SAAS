@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { LuRotateCcw } from 'react-icons/lu';
 import { graphqlRequest } from '@/lib/graphql-client';
 
@@ -92,22 +92,15 @@ function formatTime(totalSeconds: number) {
   ).padStart(2, '0')}`;
 }
 
-function getFocusProgress(
-  totalSeconds: number,
-  remainingSeconds: number,
-) {
+function getFocusProgress(totalSeconds: number, remainingSeconds: number) {
   if (totalSeconds <= 0) return 0;
 
-  return Math.min(
-    1,
-    Math.max(0, 1 - remainingSeconds / totalSeconds),
-  );
+  return Math.min(1, Math.max(0, 1 - remainingSeconds / totalSeconds));
 }
 
 export function Timer() {
   const [activeTimer, setActiveTimer] = useState<ActiveTimer | null>(null);
-  const [selectedType, setSelectedType] =
-    useState<TimerType>('FOCUS_TIMER');
+  const [selectedType, setSelectedType] = useState<TimerType>('FOCUS_TIMER');
 
   const [focusMinutes, setFocusMinutes] = useState(45);
   const [showTime, setShowTime] = useState(false);
@@ -117,11 +110,16 @@ export function Timer() {
   const [actionLoading, setActionLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Audio used when the focus timer finishes.
+  const alarmRef = useRef<HTMLAudioElement | null>(null);
+
+  // Prevent the same timer from triggering the notification more than once.
+  const notifiedTimerIdRef = useRef<string | null>(null);
+
   const loadActiveTimer = useCallback(async () => {
     try {
-      const data = await graphqlRequest<ActiveTimerResponse>(
-        ACTIVE_TIMER_QUERY,
-      );
+      const data =
+        await graphqlRequest<ActiveTimerResponse>(ACTIVE_TIMER_QUERY);
 
       setActiveTimer(data.activeTimer);
 
@@ -133,9 +131,7 @@ export function Timer() {
         }
       }
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : 'Failed to load timer',
-      );
+      setError(err instanceof Error ? err.message : 'Failed to load timer');
     } finally {
       setLoading(false);
     }
@@ -153,9 +149,7 @@ export function Timer() {
    */
   useEffect(() => {
     if (!activeTimer) {
-      setDisplaySeconds(
-        selectedType === 'FOCUS_TIMER' ? focusMinutes * 60 : 0,
-      );
+      setDisplaySeconds(selectedType === 'FOCUS_TIMER' ? focusMinutes * 60 : 0);
       return;
     }
 
@@ -163,8 +157,7 @@ export function Timer() {
       if (activeTimer.status === 'PAUSED') {
         if (activeTimer.type === 'FOCUS_TIMER') {
           const remaining =
-            (activeTimer.durationSeconds ?? 0) -
-            activeTimer.elapsedSeconds;
+            (activeTimer.durationSeconds ?? 0) - activeTimer.elapsedSeconds;
 
           setDisplaySeconds(Math.max(0, remaining));
         } else {
@@ -193,9 +186,7 @@ export function Timer() {
         if (!activeTimer.runStartedAt) return;
 
         const runningSeconds = Math.floor(
-          (Date.now() -
-            new Date(activeTimer.runStartedAt).getTime()) /
-            1000,
+          (Date.now() - new Date(activeTimer.runStartedAt).getTime()) / 1000,
         );
 
         setDisplaySeconds(
@@ -212,9 +203,57 @@ export function Timer() {
   }, [activeTimer, focusMinutes, selectedType]);
 
   /*
-   * When a focus timer reaches zero, ask the server for the
-   * current timer. The server will finalize the expired timer
-   * and return null.
+   * Handle the focus timer finishing.
+   *
+   * This:
+   * 1. Prevents duplicate notifications.
+   * 2. Shows a desktop notification.
+   * 3. Plays the alarm sound.
+   * 4. Asks the server to finalize the expired timer.
+   */
+  const handleFocusTimerFinished = useCallback(
+    async (timerId: string) => {
+      if (notifiedTimerIdRef.current === timerId) {
+        return;
+      }
+
+      notifiedTimerIdRef.current = timerId;
+
+      if (
+        typeof Notification !== 'undefined' &&
+        Notification.permission === 'granted'
+      ) {
+        new Notification('Focus timer finished', {
+          body: 'Your focus session is complete.',
+          icon: '/utimely.webp',
+        });
+      }
+
+      try {
+        if (!alarmRef.current) {
+          alarmRef.current = new Audio('/utimely_notification.mp3');
+        }
+
+        alarmRef.current.currentTime = 0;
+        await alarmRef.current.play();
+      } catch (error) {
+        console.warn('Unable to play timer alarm:', error);
+      }
+
+      // This causes the server to finalize the expired timer.
+      await loadActiveTimer();
+
+      // Tell Today's Time to fetch the newly-created session.
+      window.dispatchEvent(new Event('utimely:time-updated'));
+    },
+    [loadActiveTimer],
+  );
+
+  /*
+   * When a focus timer reaches zero, trigger the notification/alarm
+   * and ask the server for the current timer.
+   *
+   * The server will finalize the expired timer and return null.
    */
   useEffect(() => {
     if (
@@ -231,13 +270,13 @@ export function Timer() {
 
     const timeout = setTimeout(
       () => {
-        loadActiveTimer();
+        void handleFocusTimerFinished(activeTimer.id);
       },
       Math.max(0, remainingMilliseconds + 250),
     );
 
     return () => clearTimeout(timeout);
-  }, [activeTimer, loadActiveTimer]);
+  }, [activeTimer, handleFocusTimerFinished]);
 
   const runAction = async (action: () => Promise<void>) => {
     try {
@@ -253,6 +292,19 @@ export function Timer() {
   };
 
   const handleStartFocus = async () => {
+    // Ask for notification permission while the user is
+    // actively interacting with the page.
+    if (
+      typeof Notification !== 'undefined' &&
+      Notification.permission === 'default'
+    ) {
+      try {
+        await Notification.requestPermission();
+      } catch (error) {
+        console.warn('Unable to request notification permission:', error);
+      }
+    }
+
     await runAction(async () => {
       const data = await graphqlRequest<StartFocusResponse>(
         `
@@ -280,6 +332,13 @@ export function Timer() {
       setActiveTimer(data.startFocusTimer);
       setSelectedType('FOCUS_TIMER');
       setShowTime(false);
+
+      // Prepare the alarm audio while the user has just
+      // interacted with the page.
+      if (!alarmRef.current) {
+        alarmRef.current = new Audio('/utimely_notification.mp3');
+        alarmRef.current.preload = 'auto';
+      }
     });
   };
 
@@ -376,8 +435,8 @@ export function Timer() {
         }
       `);
 
-      window.dispatchEvent(new Event("utimely:time-updated"));
-      
+      window.dispatchEvent(new Event('utimely:time-updated'));
+
       setActiveTimer(null);
       setShowTime(false);
     });
@@ -477,7 +536,7 @@ export function Timer() {
 
       {/* Timer display */}
       <div className="flex min-h-64 flex-col items-center justify-center">
-        <div className="text-6xl sm:text-7xl font-semibold tracking-[-0.04em] text-[var(--color-text)]">
+        <div className="text-6xl font-semibold tracking-[-0.04em] text-[var(--color-text)] sm:text-7xl">
           {isFocus && activeTimer?.status === 'RUNNING' && !showTime
             ? '••••••'
             : formatTime(displaySeconds)}
@@ -501,12 +560,12 @@ export function Timer() {
               }).map((_, index, segments) => {
                 const totalSeconds =
                   activeTimer.durationSeconds ?? focusMinutes * 60;
-                const progress = getFocusProgress(
-                  totalSeconds,
-                  displaySeconds,
-                );
+
+                const progress = getFocusProgress(totalSeconds, displaySeconds);
+
                 const segmentStart = index / segments.length;
                 const segmentEnd = (index + 1) / segments.length;
+
                 const fill =
                   progress >= segmentEnd
                     ? 100

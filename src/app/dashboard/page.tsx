@@ -1,7 +1,6 @@
 'use client';
 
 import { LuRefreshCw } from 'react-icons/lu';
-import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 import { TodayTasks } from '../components/dashboard/today-tasks';
@@ -10,17 +9,11 @@ import { TodayTime } from '../components/dashboard/today-time';
 import { Timer } from './timer';
 
 export default function DashboardPage() {
-  const router = useRouter();
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  const handleRefresh = async () => {
+  const handleRefresh = () => {
     setIsRefreshing(true);
-
-    try {
-      router.refresh();
-    } finally {
-      setIsRefreshing(false);
-    }
+    window.location.reload();
   };
 
   return (

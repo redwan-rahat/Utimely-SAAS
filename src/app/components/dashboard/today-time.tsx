@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+
 import { graphqlRequest } from '@/lib/graphql-client';
 
 type TimeSessionType = 'FOCUS_TIMER' | 'STOPWATCH' | 'MANUAL';
@@ -110,6 +111,16 @@ export function TodayTime() {
     (session) => session.type === 'STOPWATCH',
   );
 
+  const focusTotal = focusSessions.reduce(
+    (total, session) => total + session.duration,
+    0,
+  );
+
+  const stopwatchTotal = stopwatchSessions.reduce(
+    (total, session) => total + session.duration,
+    0,
+  );
+
   return (
     <section className="h-full rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)] p-6 shadow-[0_2px_10px_rgba(0,0,0,0.04)]">
       <div className="mb-6">
@@ -150,7 +161,7 @@ export function TodayTime() {
           <div>
             <div className="mb-3 flex items-center justify-between">
               <h3 className="text-base font-semibold text-[var(--color-text)]">
-                Focus Timer
+                Focus Timer ({formatDuration(focusTotal)})
               </h3>
 
               <span className="text-xs text-[var(--color-text-muted)]">
@@ -187,7 +198,7 @@ export function TodayTime() {
           <div>
             <div className="mb-3 flex items-center justify-between">
               <h3 className="text-base font-semibold text-[var(--color-text)]">
-                Stopwatch
+                Stopwatch ({formatDuration(stopwatchTotal)})
               </h3>
 
               <span className="text-xs text-[var(--color-text-muted)]">
