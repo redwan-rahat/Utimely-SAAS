@@ -114,14 +114,14 @@ export default function Navbar() {
                     await authClient.signOut();
                     window.location.href = '/';
                   }}
-                  className="text-nav leading-body tracking-body font-medium text-text transition-colors hover:text-primary"
+                  className="text-nav cursor-pointer leading-body tracking-body font-medium text-text transition-colors hover:text-primary"
                 >
                   Log out
                 </button>
               ) : (
                 <Link
                   href="/sign-in"
-                  className="text-nav leading-body tracking-body font-medium text-text transition-colors hover:text-primary"
+                  className="text-nav cursor-pointer leading-body tracking-body font-medium text-text transition-colors hover:text-primary"
                 >
                   Sign in
                 </Link>
