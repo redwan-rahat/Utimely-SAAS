@@ -30,7 +30,7 @@ export default function DashboardPage() {
           </h1>
 
           <p className="mt-2 text-sm text-[var(--color-text-secondary)]">
-            Let’s focus on what actually matters.
+            Let’s focus on what matters.
           </p>
         </div>
 

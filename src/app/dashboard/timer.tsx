@@ -593,6 +593,11 @@ export function Timer() {
           color: #f5f5f5;
         }
 
+        .mini-paused {
+          color: #ff6b6b;
+          font-weight: 500;
+        }
+
         .mini-dot {
           width: 7px;
           height: 7px;
@@ -754,6 +759,7 @@ export function Timer() {
             <div class="mini-title">
               <span class="mini-dot"></span>
               <span>Focus session</span>
+              <span id="mini-paused" class="mini-paused hidden">(Paused)</span>
             </div>
 
             <button
@@ -919,6 +925,7 @@ export function Timer() {
     const visibilityButton = doc.getElementById(
       'mini-visibility',
     ) as HTMLButtonElement | null;
+    const pausedStatus = doc.getElementById('mini-paused');
     const minutesInput = doc.getElementById(
       'mini-minutes',
     ) as HTMLInputElement | null;
@@ -931,7 +938,8 @@ export function Timer() {
       !actionsElement ||
       !mainAction ||
       !resetButton ||
-      !visibilityButton
+      !visibilityButton ||
+      !pausedStatus
     ) {
       return;
     }
@@ -941,6 +949,7 @@ export function Timer() {
      * show the Focus Timer setup.
      */
     if (!activeTimer) {
+      pausedStatus.classList.add('hidden');
       setupElement.classList.remove('hidden');
       actionsElement.classList.add('hidden');
 
@@ -961,6 +970,12 @@ export function Timer() {
      * hide setup controls.
      */
     setupElement.classList.add('hidden');
+
+    if (activeTimer.type === 'FOCUS_TIMER' && activeTimer.status === 'PAUSED') {
+      pausedStatus.classList.remove('hidden');
+    } else {
+      pausedStatus.classList.add('hidden');
+    }
     actionsElement.classList.remove('hidden');
 
     /*
