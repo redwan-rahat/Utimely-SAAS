@@ -1,4 +1,5 @@
 'use client';
+import { authClient } from '@/lib/auth-client';
 import { FiMenu } from 'react-icons/fi';
 import { IoMdClose } from 'react-icons/io';
 import { usePathname } from 'next/navigation';
@@ -10,7 +11,9 @@ import Image from 'next/image';
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
 
-    const pathname = usePathname();
+  const { data: session, isPending } = authClient.useSession();
+
+  const pathname = usePathname();
 
   const hideNavbar =
     pathname.startsWith('/dashboard') ||
@@ -37,10 +40,9 @@ export default function Navbar() {
     };
   }, [isOpen]);
 
-
   if (hideNavbar) {
-  return null;
-}
+    return null;
+  }
 
   return (
     <>
@@ -105,15 +107,28 @@ export default function Navbar() {
 
             {/* Desktop Actions */}
             <div className="hidden items-center gap-4 md:flex">
-              <Link
-                href="/sign-in"
-                className="text-nav leading-body tracking-body font-medium text-text  transition-colors hover:text-primary"
-              >
-                Sign in
-              </Link>
+              {session ? (
+                <button
+                  type="button"
+                  onClick={async () => {
+                    await authClient.signOut();
+                    window.location.href = '/';
+                  }}
+                  className="text-nav leading-body tracking-body font-medium text-text transition-colors hover:text-primary"
+                >
+                  Log out
+                </button>
+              ) : (
+                <Link
+                  href="/sign-in"
+                  className="text-nav leading-body tracking-body font-medium text-text transition-colors hover:text-primary"
+                >
+                  Sign in
+                </Link>
+              )}
 
               <Link
-                href="/sign-up"
+                href={session ? '/dashboard' : '/sign-up'}
                 className="rounded-md bg-primary px-4 py-2.5 text-nav leading-body tracking-body font-medium text-white transition-colors hover:bg-primary-hover"
               >
                 Start your timer
@@ -196,16 +211,28 @@ export default function Navbar() {
 
               {/* Actions */}
               <div className="mt-5 flex flex-col gap-3">
-                <Link
-                  href="/sign-in"
-                  onClick={closeMenu}
-                  className="text-nav leading-body tracking-body bg-secondary rounded-md border border-border px-4 py-3 text-center font-medium text-text transition-colors hover:bg-surface"
-                >
-                  Sign in
-                </Link>
+                {session ? (
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      await authClient.signOut();
+                      window.location.href = '/';
+                    }}
+                    className="text-nav leading-body tracking-body font-medium text-text transition-colors hover:text-primary"
+                  >
+                    Log out
+                  </button>
+                ) : (
+                  <Link
+                    href="/sign-in"
+                    className="text-nav leading-body tracking-body font-medium text-text transition-colors hover:text-primary"
+                  >
+                    Sign in
+                  </Link>
+                )}
 
                 <Link
-                  href="/sign-in"
+                  href={session ? '/dashboard' : '/sign-up'}
                   onClick={closeMenu}
                   className="text-nav leading-body tracking-body rounded-md bg-primary px-4 py-3 text-center font-medium text-white transition-colors hover:bg-primary-hover"
                 >

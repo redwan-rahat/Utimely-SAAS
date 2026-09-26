@@ -68,7 +68,13 @@ export default function Sidebar() {
   };
 
   const handleLogout = async () => {
-    await authClient.signOut();
+    const { error } = await authClient.signOut();
+
+    if (error) {
+      console.error('Logout failed:', error);
+      return;
+    }
+
     window.location.href = '/';
   };
 
@@ -145,12 +151,15 @@ export default function Sidebar() {
             ======================================== */}
 
         <div className="hidden h-20 shrink-0 items-center px-6 lg:flex">
-          <Link
-            href="/"
-            className="text-[24px] font-bold tracking-[-0.3px]"
-          >
-          <Image alt="utimely Logo" className="w-[104px]" src="/utimely.webp" height={500} width={500}></Image>
-            
+          <Link href="/" className="text-[24px] font-bold tracking-[-0.3px]">
+            <Image
+              alt="utimely Logo"
+              className="w-[104px]"
+              src="/utimely.webp"
+              height={500}
+              width={500}
+            ></Image>
+
             {/* <span className="text-text">U</span>
             <span className="text-primary">timely</span> */}
           </Link>
