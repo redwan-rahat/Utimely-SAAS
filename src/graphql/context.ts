@@ -3,9 +3,13 @@ import { prisma } from '@/lib/prisma';
 import { headers } from 'next/headers';
 
 export async function createContext() {
+  const start = performance.now();
+
   const session = await auth.api.getSession({
     headers: await headers(),
   });
+
+  console.log(`getSession: ${(performance.now() - start).toFixed(2)}ms`);
 
   return {
     prisma,

@@ -6,7 +6,7 @@ export default function ContactPage() {
   return (
     <main className="bg-background">
       {/* Hero */}
-      <section className="px-5 pb-14 pt-24 sm:px-6 sm:pb-16 sm:pt-28 lg:pb-20 lg:pt-32">
+      <section className="px-5 pb-14  sm:px-6 sm:pb-16  lg:pb-20 pt-40">
         <div className="mx-auto max-w-[900px] text-center">
           <div className="inline-flex items-center gap-2 rounded-full border border-[var(--color-border)] bg-surface px-3 py-1.5 text-sm font-medium text-text-secondary">
             <span className="text-primary">✦</span>

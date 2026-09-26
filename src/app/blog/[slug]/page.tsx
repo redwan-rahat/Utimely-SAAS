@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { blogs } from "@/data/blogs";
+import Image from "next/image";
 
 interface BlogDetailsPageProps {
   params: Promise<{
@@ -17,7 +18,7 @@ export default async function BlogDetailsPage({
 
   if (!blog) {
     return (
-      <main className="flex min-h-[70vh] items-center justify-center bg-background px-5">
+      <main className="flex  min-h-[70vh] items-center justify-center bg-background px-5">
         <div className="text-center">
           <h1 className="text-4xl font-semibold text-text">
             Blog not found
@@ -41,13 +42,13 @@ export default async function BlogDetailsPage({
 
   return (
     <main className="bg-background">
-      <section className="px-5 pb-32 pt-24 sm:px-6 sm:pt-28 lg:pt-32">
+      <section className="px-5 pb-32 sm:px-6 pt-40">
         <div className="mx-auto max-w-[760px] text-center">
           <p className="text-sm font-medium uppercase tracking-[0.02em] text-text-secondary">
             {blog.date}
           </p>
 
-          <h1 className="mt-4 text-4xl font-semibold leading-heading tracking-heading text-text sm:text-5xl">
+          <h1 className="mt-4 max-w-[550px] mx-auto text-4xl font-semibold leading-heading tracking-heading text-text sm:text-5xl">
             {blog.title}
           </h1>
 
@@ -55,9 +56,13 @@ export default async function BlogDetailsPage({
             <div className="relative aspect-[4/3] w-full">
               {/* Placeholder image */}
               <div className="absolute inset-0 flex items-center justify-center bg-surface">
-                <p className="text-sm text-text-muted">
-                  Blog cover image
-                </p>
+        <Image
+          src={blog.image}
+          alt={blog.title}
+          fill
+          className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+        />
               </div>
             </div>
           </div>

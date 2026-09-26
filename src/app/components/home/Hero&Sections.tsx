@@ -10,7 +10,7 @@ export default function HeroSection() {
     <section className="bg-background">
       <div className="mx-auto w-full max-w-[1200px] px-5 md:px-6 lg:px-8">
         {/* Hero Content */}
-        <div className="grid min-h-[460px] items-center gap-10 py-16 sm:py-20 lg:grid-cols-[1.55fr_0.65fr] lg:gap-16 lg:py-24">
+        <div className="grid min-h-[460px] items-center gap-0 lg:gap-10 py-16 sm:py-20 lg:grid-cols-[1.55fr_0.65fr] lg:gap-16 lg:py-24">
           {/* Left */}
           <div className="">
             <h1 className="max-w-[760px] text-[48px] font-semibold leading-heading tracking-heading text-text sm:text-[60px] lg:text-[76px]">
@@ -55,7 +55,7 @@ export default function HeroSection() {
 
         <div id="video-showcase">
         <ProductDemo></ProductDemo>
-        </div>
+        </div>j
         <div>
           <PlatformShowcase></PlatformShowcase>
         </div>
