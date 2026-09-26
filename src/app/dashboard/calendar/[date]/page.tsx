@@ -897,7 +897,7 @@ export default function CalendarDayPage({
         </button>
 
         {/* DATE + REFRESH */}
-        <div className="flex items-center justify-between gap-4">
+        <div className="flex items-start justify-between gap-4">
           <div>
             <p className="mb-1 text-sm font-medium text-[var(--color-primary)]">
               Calendar
@@ -917,7 +917,7 @@ export default function CalendarDayPage({
             type="button"
             onClick={handleRefresh}
             disabled={refreshing}
-            className="flex shrink-0 items-center gap-2 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3.5 py-2.5 text-sm font-medium text-[var(--color-text-secondary)] shadow-sm transition-colors hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text)] disabled:cursor-not-allowed disabled:opacity-50"
+            className="flex shrink-0 hover:cursor-pointer items-center gap-2 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3.5 py-2.5 text-sm font-medium text-[var(--color-text-secondary)] shadow-sm transition-colors hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text)] disabled:cursor-not-allowed disabled:opacity-50"
           >
             <RefreshCw
               size={16}
@@ -925,7 +925,7 @@ export default function CalendarDayPage({
               className={refreshing ? 'animate-spin' : ''}
             />
 
-            {refreshing ? 'Refreshing...' : 'Refresh'}
+            Refresh
           </button>
         </div>
       </div>

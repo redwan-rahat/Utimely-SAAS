@@ -2,7 +2,11 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { graphqlRequest } from '@/lib/graphql-client';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import {
+  ChevronLeft,
+  ChevronRight,
+  RefreshCw,
+} from 'lucide-react';
 
 type Task = {
   id: string;
@@ -145,15 +149,19 @@ export default function AnalyticsPage() {
   >([]);
 
   const [loading, setLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState('');
 
   /* =======================================================
      LOAD DATA
   ======================================================= */
 
-  async function loadData() {
+  async function loadData(showLoading = true) {
     try {
-      setLoading(true);
+      if (showLoading) {
+        setLoading(true);
+      }
+
       setError('');
 
       const [
@@ -170,6 +178,7 @@ export default function AnalyticsPage() {
       ]);
 
       setTasks(tasksResult.tasks);
+
       setTimeSessions(
         sessionsResult.timeSessions,
       );
@@ -180,13 +189,29 @@ export default function AnalyticsPage() {
           : 'Failed to load analytics',
       );
     } finally {
-      setLoading(false);
+      if (showLoading) {
+        setLoading(false);
+      }
     }
   }
 
   useEffect(() => {
     loadData();
   }, []);
+
+  /* =======================================================
+     REFRESH
+  ======================================================= */
+
+  async function handleRefresh() {
+    setIsRefreshing(true);
+
+    try {
+      await loadData(false);
+    } finally {
+      setIsRefreshing(false);
+    }
+  }
 
   /* =======================================================
      MONTH NAVIGATION
@@ -344,6 +369,7 @@ export default function AnalyticsPage() {
    * available approximation for when a task became
    * completed.
    */
+
   const totalTasksCompleted = useMemo(() => {
     return tasks.filter((task) => {
       if (task.status !== 'COMPLETED') {
@@ -387,7 +413,7 @@ export default function AnalyticsPage() {
           HEADER
       ================================================= */}
 
-      <div className="flex items-end justify-between gap-4">
+      <div className="flex items-start justify-between gap-4">
         <div>
           <p className="mb-1 text-sm font-medium text-[var(--color-primary)]">
             Analytics
@@ -403,34 +429,29 @@ export default function AnalyticsPage() {
           </p>
         </div>
 
-        {/* MONTH SELECTOR */}
+        {/* REFRESH */}
 
-        <div className="flex shrink-0 items-center gap-2">
-          <button
-            type="button"
-            onClick={goToPreviousMonth}
-            className="flex h-9 w-9 items-center justify-center rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] text-sm text-[var(--color-text-secondary)] shadow-sm transition-colors hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text)]"
-            aria-label="Previous month"
-          >
-            <ChevronLeft size={17} strokeWidth={1.8} />
-          </button>
+        <button
+          type="button"
+          onClick={handleRefresh}
+          disabled={isRefreshing}
+          className="inline-flex shrink-0 hover:cursor-pointer h-9 items-center gap-2 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 text-sm font-medium text-[var(--color-text-secondary)] shadow-sm transition-colors hover:border-[var(--color-border-hover)] hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text)] disabled:cursor-not-allowed disabled:opacity-60"
+          aria-label="Refresh analytics"
+        >
+          <RefreshCw
+            size={16}
+            strokeWidth={1.8}
+            className={
+              isRefreshing
+                ? 'animate-spin'
+                : ''
+            }
+          />
 
-          <div className="min-w-[150px] text-center">
-            <p className="text-sm font-semibold text-[var(--color-text)]">
-              {MONTH_NAMES[selectedMonth]}{' '}
-              {selectedYear}
-            </p>
-          </div>
-
-          <button
-            type="button"
-            onClick={goToNextMonth}
-            className="flex h-9 w-9 items-center justify-center rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] text-sm text-[var(--color-text-secondary)] shadow-sm transition-colors hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text)]"
-            aria-label="Next month"
-          >
-            <ChevronRight size={17} strokeWidth={1.8} />
-          </button>
-        </div>
+          <span className="inline">
+            Refresh
+          </span>
+        </button>
       </div>
 
       {/* =================================================
@@ -447,16 +468,53 @@ export default function AnalyticsPage() {
           WORK HOURS CHART
       ================================================= */}
 
-      <section className="rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)] shadow-[0_2px_10px_rgba(0,0,0,0.04)] p-6">
-        <div>
-          <h2 className="text-base font-semibold text-[var(--color-text)]">
-            Work hours
-          </h2>
+      <section className="rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)] p-6 shadow-[0_2px_10px_rgba(0,0,0,0.04)]">
+        <div className="flex flex-col sm:flex-row items-start justify-between gap-6">
+          <div>
+            <h2 className="text-base font-semibold text-[var(--color-text)]">
+              Work hours
+            </h2>
 
-          <p className="mt-1 text-sm text-[var(--color-text-secondary)]">
-            Time recorded throughout{' '}
-            {MONTH_NAMES[selectedMonth]}.
-          </p>
+            <p className="mt-1 text-sm text-[var(--color-text-secondary)]">
+              Time recorded throughout{' '}
+              {MONTH_NAMES[selectedMonth]}.
+            </p>
+          </div>
+
+          {/* MONTH SELECTOR */}
+
+          <div className="flex shrink-0 items-center gap-2">
+            <button
+              type="button"
+              onClick={goToPreviousMonth}
+              className="flex h-9 w-9 hover:cursor-pointer items-center justify-center rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] text-sm text-[var(--color-text-secondary)] shadow-sm transition-colors hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text)]"
+              aria-label="Previous month"
+            >
+              <ChevronLeft
+                size={17}
+                strokeWidth={1.8}
+              />
+            </button>
+
+            <div className="min-w-[150px] text-center">
+              <p className="text-sm font-semibold text-[var(--color-text)]">
+                {MONTH_NAMES[selectedMonth]}{' '}
+                {selectedYear}
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={goToNextMonth}
+              className="flex h-9 w-9 hover:cursor-pointer items-center justify-center rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] text-sm text-[var(--color-text-secondary)] shadow-sm transition-colors hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text)]"
+              aria-label="Next month"
+            >
+              <ChevronRight
+                size={17}
+                strokeWidth={1.8}
+              />
+            </button>
+          </div>
         </div>
 
         {/* CHART */}
@@ -560,8 +618,7 @@ export default function AnalyticsPage() {
                           {/* VALUE */}
 
                           <div className="mb-2 h-4 text-center text-[10px] font-medium text-[var(--color-text-secondary)]">
-                            {item.seconds >
-                            0
+                            {item.seconds > 0
                               ? formatBarTime(
                                   item.seconds,
                                 )
@@ -574,8 +631,7 @@ export default function AnalyticsPage() {
                             <div
                               className="w-5 rounded-t-[var(--radius-sm)] bg-[var(--color-primary)] transition-all duration-300 sm:w-6"
                               style={{
-                                height:
-                                  `${height}%`,
+                                height: `${height}%`,
                                 minHeight:
                                   item.hours >
                                   0
@@ -612,7 +668,7 @@ export default function AnalyticsPage() {
       <div className="grid gap-4 sm:grid-cols-3">
         {/* HOURS */}
 
-        <div className="rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)] shadow-[0_2px_10px_rgba(0,0,0,0.04)] p-5">
+        <div className="rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)] p-5 shadow-[0_2px_10px_rgba(0,0,0,0.04)]">
           <p className="text-sm text-[var(--color-text-secondary)]">
             Total hours worked
           </p>
@@ -631,7 +687,7 @@ export default function AnalyticsPage() {
 
         {/* CREATED */}
 
-        <div className="rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)] shadow-[0_2px_10px_rgba(0,0,0,0.04)] p-5">
+        <div className="rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)] p-5 shadow-[0_2px_10px_rgba(0,0,0,0.04)]">
           <p className="text-sm text-[var(--color-text-secondary)]">
             Total tasks created
           </p>
@@ -648,7 +704,7 @@ export default function AnalyticsPage() {
 
         {/* COMPLETED */}
 
-        <div className="rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)] shadow-[0_2px_10px_rgba(0,0,0,0.04)] p-5">
+        <div className="rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)] p-5 shadow-[0_2px_10px_rgba(0,0,0,0.04)]">
           <p className="text-sm text-[var(--color-text-secondary)]">
             Total tasks completed
           </p>

@@ -32,7 +32,7 @@ const changelog = [
   },
   {
     version: "Version 0.0.2",
-    date: "SEP 18, 2026",
+    date: "JULY 18, 2026",
     sections: [
       {
         title: "Features",
@@ -62,7 +62,7 @@ export default function ChangelogPage() {
   return (
     <main className="bg-background">
       {/* Hero */}
-      <section className="px-5 pb-20 pt-24 sm:px-6 sm:pb-24 sm:pt-28 lg:pb-28 lg:pt-32">
+      <section className="px-5 pb-16 pt-40 sm:px-6">
         <div className="mx-auto max-w-[900px] text-center">
           <div className="inline-flex items-center gap-2 rounded-full border border-[var(--color-border)] bg-surface px-3 py-1.5 text-sm font-medium text-text-secondary">
             <span className="text-primary">✦</span>
@@ -82,15 +82,11 @@ export default function ChangelogPage() {
 
       {/* Changelog */}
       <section className="px-5 pb-28 sm:px-6 sm:pb-32 lg:pb-36">
-        <div className="mx-auto max-w-[760px]">
-          {changelog.map((release, index) => (
+        <div className="mx-auto max-w-[760px] space-y-6">
+          {changelog.map((release) => (
             <article
               key={release.version}
-              className={
-                index !== changelog.length - 1
-                  ? "border-b border-[var(--color-border)] pb-16 pt-16 first:pt-0 sm:pb-20 sm:pt-20"
-                  : "pt-16 sm:pt-20"
-              }
+              className="rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-surface p-6 shadow-[0_2px_10px_rgba(0,0,0,0.04)] sm:p-8"
             >
               {/* Date */}
               <div className="inline-flex items-center gap-2 rounded-full border border-[var(--color-border)] bg-surface px-3 py-1.5 text-sm font-medium text-text-secondary">
@@ -104,12 +100,12 @@ export default function ChangelogPage() {
               </div>
 
               {/* Version */}
-              <h2 className="mt-7 text-4xl font-semibold leading-heading tracking-heading text-text sm:text-5xl">
+              <h2 className="mt-6 text-3xl font-semibold leading-heading tracking-heading text-text sm:text-4xl">
                 {release.version}
               </h2>
 
               {/* Release sections */}
-              <div className="mt-10 space-y-9">
+              <div className="mt-8 space-y-8">
                 {release.sections.map((section) => (
                   <div key={section.title}>
                     <h3 className="text-lg font-semibold tracking-heading text-text">

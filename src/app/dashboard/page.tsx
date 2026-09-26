@@ -1,14 +1,26 @@
 'use client';
 
 import { LuRefreshCw } from 'react-icons/lu';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+
 import { TodayTasks } from '../components/dashboard/today-tasks';
 import { ScheduledTasks } from '../components/dashboard/scheduled-tasks';
 import { TodayTime } from '../components/dashboard/today-time';
 import { Timer } from './timer';
 
 export default function DashboardPage() {
-  const handleRefresh = () => {
-    window.location.reload();
+  const router = useRouter();
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+
+    try {
+      router.refresh();
+    } finally {
+      setIsRefreshing(false);
+    }
   };
 
   return (
@@ -32,14 +44,19 @@ export default function DashboardPage() {
         <button
           type="button"
           onClick={handleRefresh}
-          className="inline-flex shrink-0 items-center gap-2 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-2.5 text-sm font-medium text-[var(--color-text-secondary)] shadow-sm transition-colors hover:border-[var(--color-border-hover)] hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text)]"
+          disabled={isRefreshing}
+          className="inline-flex shrink-0 cursor-pointer items-center gap-2 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-2.5 text-sm font-medium text-[var(--color-text-secondary)] shadow-sm transition-colors hover:border-[var(--color-border-hover)] hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text)] disabled:cursor-not-allowed disabled:opacity-60"
         >
-          <LuRefreshCw size={16} strokeWidth={1.8} />
+          <LuRefreshCw
+            size={16}
+            strokeWidth={1.8}
+            className={isRefreshing ? 'animate-spin' : ''}
+          />
           Refresh
         </button>
       </div>
 
-      {/* Top Grid: Timer 2/3 + Today's Time 1/3 */}
+      {/* Top Grid */}
       <div className="grid items-stretch gap-6 lg:grid-cols-3">
         <div className="h-full lg:col-span-2">
           <Timer />
@@ -50,7 +67,7 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Bottom Grid: Today's Tasks 1/2 + Scheduled Tasks 1/2 */}
+      {/* Bottom Grid */}
       <div className="grid gap-6 lg:grid-cols-2">
         <TodayTasks />
         <ScheduledTasks />

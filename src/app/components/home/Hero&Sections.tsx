@@ -31,7 +31,7 @@ export default function HeroSection() {
               </Link>
 
               <a
-                href="#features"
+                href="#process-section"
                 className="rounded-md bg-secondary px-5 py-3.5 text-button font-medium leading-body tracking-body text-text transition-colors hover:bg-secondary-hover"
               >
                 See how it works

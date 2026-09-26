@@ -1,23 +1,27 @@
-import BlogGrid from "../components/blog/BlogGrid";
+import BlogGrid from '../components/blog/BlogGrid';
 
 export default function BlogPage() {
   return (
     <main className="bg-background">
       {/* Hero */}
-      <section className="px-5 pb-20 pt-24 sm:px-6 sm:pb-24 sm:pt-28 lg:pb-28 lg:pt-32">
-        <div className="mx-auto max-w-[900px] text-center">
-          <p className="text-sm font-medium uppercase tracking-[0.02em] text-text-secondary">
-            Utimely Blog
-          </p>
+      <section className="px-5 pb-16 pt-40 sm:px-6">
+        <div className="mx-auto space-y-8 max-w-[900px] text-center">
+          <div className="inline-flex items-center gap-2 rounded-full border border-[var(--color-border)] bg-surface px-3 py-1.5 text-sm font-medium text-text-secondary">
+            <span className="text-primary">✦</span>
+            BLOG
+          </div>
 
-          <h1 className="mt-3 text-4xl font-semibold leading-heading tracking-heading text-text sm:text-5xl">
-            Ideas for better work and better focus.
-          </h1>
+          <div>
+            <h1 className="mt-3 max-w-[500px] mx-auto text-4xl font-semibold leading-heading tracking-heading text-text sm:text-5xl">
+              Ideas for better work and better focus.
+            </h1>
 
-          <p className="mx-auto mt-5 max-w-[620px] text-body leading-body tracking-body text-text-secondary">
-            Practical ideas about goals, focus, time, and building a
-            productivity system that works for you.
-          </p>
+            <p className="mx-auto mt-5 max-w-[420px] text-body leading-body tracking-body text-text-secondary">
+              Practical ideas about goals, focus, time, and building
+              productivity system that works for you.
+            </p>
+          </div>
+
         </div>
       </section>
 

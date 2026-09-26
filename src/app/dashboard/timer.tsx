@@ -477,7 +477,7 @@ export function Timer() {
 
       {/* Timer display */}
       <div className="flex min-h-64 flex-col items-center justify-center">
-        <div className="text-7xl font-semibold tracking-[-0.04em] text-[var(--color-text)]">
+        <div className="text-6xl sm:text-7xl font-semibold tracking-[-0.04em] text-[var(--color-text)]">
           {isFocus && activeTimer?.status === 'RUNNING' && !showTime
             ? '••••••'
             : formatTime(displaySeconds)}

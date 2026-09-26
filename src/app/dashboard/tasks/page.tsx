@@ -996,16 +996,14 @@ export default function TasksPage() {
           type="button"
           onClick={() => loadData(true)}
           disabled={refreshing}
-          className="inline-flex shrink-0 items-center gap-2 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-2.5 text-sm font-medium text-[var(--color-text-secondary)] shadow-sm transition-colors hover:border-[var(--color-border-hover)] hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text)] disabled:cursor-not-allowed disabled:opacity-50"
+          className="inline-flex hover:cursor-pointer shrink-0 items-center gap-2 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-2.5 text-sm font-medium text-[var(--color-text-secondary)] shadow-sm transition-colors hover:border-[var(--color-border-hover)] hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text)] disabled:cursor-not-allowed disabled:opacity-50"
         >
           <LuRefreshCw
             size={16}
             strokeWidth={1.8}
             className={refreshing ? 'animate-spin' : ''}
           />
-          {refreshing
-            ? 'Refreshing...'
-            : 'Refresh'}
+         Refresh
         </button>
       </div>
 
