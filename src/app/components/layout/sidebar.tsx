@@ -121,8 +121,13 @@ export default function Sidebar() {
                 onClick={() => setMobileOpen(false)}
                 className="text-[24px] font-bold tracking-[-0.3px]"
               >
-                <span className="text-text">U</span>
-                <span className="text-primary">timely</span>
+                <Image
+                  alt="utimely Logo"
+                  className="w-[104px]"
+                  src="/utimely.webp"
+                  height={500}
+                  width={500}
+                ></Image>
               </Link>
 
               <button
