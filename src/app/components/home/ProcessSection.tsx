@@ -9,7 +9,7 @@ const processes = [
     title: 'Set your goals',
     description:
       'Turn the things you want to accomplish into clear goals and give yourself something meaningful to work on.',
-    image: '/images/process-01.png',
+    image: '/process/process-01.png',
     alt: 'Utimely goals view',
   },
   {
@@ -17,7 +17,7 @@ const processes = [
     title: 'Focus on the work',
     description:
       'Break your goals into manageable tasks, choose what matters now, and use the timer to stay focused.',
-    image: '/images/process-02.png',
+    image: '/process/process-02.png',
     alt: 'Utimely task and timer view',
   },
   {
@@ -25,7 +25,7 @@ const processes = [
     title: 'See your progress',
     description:
       'Track completed tasks and time spent working so you can understand your progress and keep moving.',
-    image: '/images/process-03.png',
+    image: '/process/process-03.png',
     alt: 'Utimely analytics view',
   },
 ];
@@ -140,7 +140,7 @@ export default function ProcessSection() {
                 }}
                 className="flex min-h-[70vh] items-center"
               >
-                <div className="w-full overflow-hidden rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-surface">
+                <div className="w-full overflow-hidden rounded-[var(--radius-lg)] border-2 border-primary/70 shadow-xl shadow-primary/20 bg-surface">
                   <div className="relative aspect-[4/3] w-full">
                     <Image
                       src={process.image}

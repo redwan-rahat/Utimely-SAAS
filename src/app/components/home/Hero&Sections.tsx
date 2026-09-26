@@ -55,7 +55,7 @@ export default function HeroSection() {
 
         <div id="video-showcase">
         <ProductDemo></ProductDemo>
-        </div>j
+        </div>
         <div>
           <PlatformShowcase></PlatformShowcase>
         </div>
