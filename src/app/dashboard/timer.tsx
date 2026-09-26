@@ -1259,7 +1259,7 @@ try {
       </div>
 
       {/* Timer display */}
-      <div className="flex min-h-64 flex-col items-center justify-center">
+      <div className="flex min-h-44 md:min-h-64 flex-col items-center justify-center">
         <div className="text-6xl font-semibold tracking-[-0.04em] text-[var(--color-text)] sm:text-7xl">
           {isFocus && activeTimer?.status === 'RUNNING' && !showTime
             ? '••••••'
