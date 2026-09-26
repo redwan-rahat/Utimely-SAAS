@@ -245,15 +245,19 @@ export function Timer() {
 
       notifiedTimerIdRef.current = timerId;
 
-      if (
-        typeof Notification !== 'undefined' &&
-        Notification.permission === 'granted'
-      ) {
-        new Notification('Focus timer finished', {
-          body: 'Your focus session is complete.',
-          icon: '/utimely.webp',
-        });
-      }
+try {
+  if (
+    typeof Notification !== 'undefined' &&
+    Notification.permission === 'granted'
+  ) {
+    new Notification('Focus timer finished', {
+      body: 'Your focus session is complete.',
+      icon: '/utimely.webp',
+    });
+  }
+} catch (error) {
+  console.warn('Unable to show timer notification:', error);
+}
 
       try {
         if (!alarmRef.current) {
