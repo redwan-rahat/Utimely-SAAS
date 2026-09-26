@@ -21,7 +21,7 @@ export default function DashboardPage() {
       {/* Header */}
       <div className="flex items-start justify-between gap-5">
         <div>
-          <p className="mb-1 text-sm font-medium text-[var(--color-primary)]">
+          <p className="mb-1 text-base font-medium text-[var(--color-primary)]">
             Dashboard
           </p>
 
