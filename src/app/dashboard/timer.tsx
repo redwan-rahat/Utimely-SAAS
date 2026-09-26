@@ -1,7 +1,15 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { LuRotateCcw } from 'react-icons/lu';
+import {
+  LuEye,
+  LuEyeOff,
+  LuPause,
+  LuPictureInPicture,
+  LuPlay,
+  LuRotateCcw,
+} from 'react-icons/lu';
+
 import { graphqlRequest } from '@/lib/graphql-client';
 
 type TimerType = 'FOCUS_TIMER' | 'STOPWATCH';
@@ -55,6 +63,15 @@ type CancelResponse = {
   cancelTimer: boolean;
 };
 
+type DocumentPiPController = {
+  requestWindow: (options?: {
+    width?: number;
+    height?: number;
+  }) => Promise<Window>;
+
+  window: Window | null;
+};
+
 const ACTIVE_TIMER_QUERY = `
   query {
     activeTimer {
@@ -100,7 +117,8 @@ function getFocusProgress(totalSeconds: number, remainingSeconds: number) {
 
 export function Timer() {
   const [activeTimer, setActiveTimer] = useState<ActiveTimer | null>(null);
-  const [selectedType, setSelectedType] = useState<TimerType>('FOCUS_TIMER');
+  const [selectedType, setSelectedType] =
+    useState<TimerType>('FOCUS_TIMER');
 
   const [focusMinutes, setFocusMinutes] = useState(45);
   const [showTime, setShowTime] = useState(false);
@@ -115,6 +133,12 @@ export function Timer() {
 
   // Prevent the same timer from triggering the notification more than once.
   const notifiedTimerIdRef = useRef<string | null>(null);
+
+  // Document Picture-in-Picture window.
+  const miniWindowRef = useRef<Window | null>(null);
+
+  // The mini timer hides Focus Timer time by default.
+  const miniShowTimeRef = useRef(false);
 
   const loadActiveTimer = useCallback(async () => {
     try {
@@ -149,7 +173,9 @@ export function Timer() {
    */
   useEffect(() => {
     if (!activeTimer) {
-      setDisplaySeconds(selectedType === 'FOCUS_TIMER' ? focusMinutes * 60 : 0);
+      setDisplaySeconds(
+        selectedType === 'FOCUS_TIMER' ? focusMinutes * 60 : 0,
+      );
       return;
     }
 
@@ -252,8 +278,6 @@ export function Timer() {
   /*
    * When a focus timer reaches zero, trigger the notification/alarm
    * and ask the server for the current timer.
-   *
-   * The server will finalize the expired timer and return null.
    */
   useEffect(() => {
     if (
@@ -291,7 +315,13 @@ export function Timer() {
     }
   };
 
-  const handleStartFocus = async () => {
+  /*
+   * Optional duration allows the mini timer to start a timer
+   * using its own minutes input.
+   *
+   * The normal dashboard Start button still uses focusMinutes.
+   */
+  const handleStartFocus = async (durationMinutes = focusMinutes) => {
     // Ask for notification permission while the user is
     // actively interacting with the page.
     if (
@@ -325,13 +355,17 @@ export function Timer() {
           }
         `,
         {
-          durationMinutes: focusMinutes,
+          durationMinutes,
         },
       );
 
+      setFocusMinutes(durationMinutes);
       setActiveTimer(data.startFocusTimer);
       setSelectedType('FOCUS_TIMER');
       setShowTime(false);
+
+      // Mini timer starts with time hidden.
+      miniShowTimeRef.current = false;
 
       // Prepare the alarm audio while the user has just
       // interacted with the page.
@@ -455,6 +489,692 @@ export function Timer() {
     });
   };
 
+  /*
+   * Open the Document Picture-in-Picture timer.
+   */
+  const handleOpenMiniTimer = async () => {
+    try {
+      const documentPiP = (
+        window as Window & {
+          documentPictureInPicture?: DocumentPiPController;
+        }
+      ).documentPictureInPicture;
+
+      if (!documentPiP) {
+        setError('Mini timer is not supported in this browser.');
+        return;
+      }
+
+      if (miniWindowRef.current && !miniWindowRef.current.closed) {
+        miniWindowRef.current.focus();
+        return;
+      }
+
+      miniShowTimeRef.current = false;
+
+      const pipWindow = await documentPiP.requestWindow({
+        width: 260,
+        height: 170,
+      });
+
+      miniWindowRef.current = pipWindow;
+
+      const doc = pipWindow.document;
+
+      doc.title = 'Utimely';
+
+      doc.head.innerHTML = '';
+
+      const style = doc.createElement('style');
+
+      style.textContent = `
+        * {
+          box-sizing: border-box;
+        }
+
+        html,
+        body {
+          margin: 0;
+          width: 100%;
+          min-height: 100%;
+          overflow: hidden;
+        }
+
+        body {
+          background: #1f1f24;
+          color: #ffffff;
+          font-family:
+            Inter,
+            ui-sans-serif,
+            system-ui,
+            -apple-system,
+            BlinkMacSystemFont,
+            "Segoe UI",
+            sans-serif;
+        }
+
+        button,
+        input {
+          font: inherit;
+        }
+
+        button {
+          border: 0;
+        }
+
+        .mini-container {
+          width: 100%;
+          min-height: 170px;
+          padding: 15px;
+          display: flex;
+          flex-direction: column;
+          justify-content: space-between;
+        }
+
+        .mini-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 8px;
+        }
+
+        .mini-title {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          min-width: 0;
+          font-size: 13px;
+          font-weight: 600;
+          color: #f5f5f5;
+        }
+
+        .mini-dot {
+          width: 7px;
+          height: 7px;
+          flex-shrink: 0;
+          border-radius: 999px;
+          background: #6a5bfb;
+        }
+
+        .mini-close {
+          width: 24px;
+          height: 24px;
+          padding: 0;
+          border-radius: 6px;
+          background: transparent;
+          color: #a5a5ad;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .mini-close:hover {
+          background: #2a2a31;
+          color: #ffffff;
+        }
+
+        .mini-time {
+          text-align: center;
+          font-size: 34px;
+          line-height: 1;
+          font-weight: 600;
+          letter-spacing: -1.5px;
+          color: #ffffff;
+        }
+
+        .mini-progress {
+          width: 100%;
+          height: 4px;
+          overflow: hidden;
+          border-radius: 999px;
+          background: #37373f;
+        }
+
+        .mini-progress-fill {
+          height: 100%;
+          width: 0%;
+          border-radius: inherit;
+          background: #6a5bfb;
+          transition: width 1000ms linear;
+        }
+
+        .mini-actions {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 7px;
+        }
+
+        .mini-action {
+          width: 34px;
+          height: 34px;
+          padding: 0;
+          border-radius: 999px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          color: #dedee4;
+          background: #2b2b32;
+          border: 1px solid #3b3b44;
+          transition:
+            background 120ms ease,
+            border-color 120ms ease;
+        }
+
+        .mini-action:hover {
+          background: #35353d;
+          border-color: #484851;
+        }
+
+        .mini-action.primary {
+          background: #6a5bfb;
+          border-color: #6a5bfb;
+          color: #ffffff;
+        }
+
+        .mini-action.primary:hover {
+          background: #5b4ce6;
+          border-color: #5b4ce6;
+        }
+
+        .mini-action.danger {
+          background: #3a292b;
+          border-color: #5a3337;
+          color: #ff8d93;
+        }
+
+        .mini-action.danger:hover {
+          background: #493034;
+          border-color: #704045;
+        }
+
+        .mini-setup {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+        }
+
+        .mini-input {
+          width: 68px;
+          height: 34px;
+          padding: 0 8px;
+          text-align: center;
+          border: 1px solid #3b3b44;
+          border-radius: 8px;
+          outline: none;
+          background: #29292f;
+          color: #ffffff;
+          font-size: 14px;
+        }
+
+        .mini-input:focus {
+          border-color: #6a5bfb;
+          box-shadow: 0 0 0 2px rgba(106, 91, 251, 0.18);
+        }
+
+        .mini-input::-webkit-inner-spin-button,
+        .mini-input::-webkit-outer-spin-button {
+          margin: 0;
+        }
+
+        .mini-start {
+          height: 34px;
+          padding: 0 13px;
+          border-radius: 8px;
+          background: #6a5bfb;
+          color: #ffffff;
+          cursor: pointer;
+          font-size: 13px;
+          font-weight: 600;
+        }
+
+        .mini-start:hover {
+          background: #5b4ce6;
+        }
+
+        .hidden {
+          display: none !important;
+        }
+      `;
+
+      doc.head.appendChild(style);
+
+      doc.body.innerHTML = `
+        <div class="mini-container">
+
+          <div class="mini-header">
+            <div class="mini-title">
+              <span class="mini-dot"></span>
+              <span>Focus session</span>
+            </div>
+
+            <button
+              id="mini-close"
+              class="mini-close"
+              type="button"
+              aria-label="Close mini timer"
+              title="Close"
+            >
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+              >
+                <path d="M6 6l12 12M18 6L6 18"/>
+              </svg>
+            </button>
+          </div>
+
+          <div id="mini-time" class="mini-time">
+            45:00
+          </div>
+
+          <div id="mini-progress" class="mini-progress hidden">
+            <div
+              id="mini-progress-fill"
+              class="mini-progress-fill"
+            ></div>
+          </div>
+
+          <div id="mini-setup" class="mini-setup">
+            <input
+              id="mini-minutes"
+              class="mini-input"
+              type="number"
+              min="1"
+              max="180"
+              value="${focusMinutes}"
+              aria-label="Focus minutes"
+            />
+
+            <button
+              id="mini-start"
+              class="mini-start"
+              type="button"
+            >
+              Start
+            </button>
+          </div>
+
+          <div id="mini-actions" class="mini-actions hidden">
+
+            <button
+              id="mini-main-action"
+              class="mini-action primary"
+              type="button"
+              aria-label="Pause"
+              title="Pause"
+            ></button>
+
+            <button
+              id="mini-reset"
+              class="mini-action danger hidden"
+              type="button"
+              aria-label="Reset"
+              title="Reset"
+            >
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M3 12a9 9 0 1 0 3-6.7"/>
+                <path d="M3 4v5h5"/>
+              </svg>
+            </button>
+
+            <button
+              id="mini-visibility"
+              class="mini-action"
+              type="button"
+              aria-label="Show time"
+              title="Show time"
+            ></button>
+
+          </div>
+
+        </div>
+      `;
+
+      const closeButton = doc.getElementById('mini-close');
+      const startButton = doc.getElementById('mini-start');
+      const minutesInput = doc.getElementById(
+        'mini-minutes',
+      ) as HTMLInputElement | null;
+
+      closeButton?.addEventListener('click', () => {
+        pipWindow.close();
+      });
+
+      startButton?.addEventListener('click', () => {
+        const value = Number(minutesInput?.value ?? focusMinutes);
+
+        if (!Number.isInteger(value)) {
+          return;
+        }
+
+        const duration = Math.min(180, Math.max(1, value));
+
+        if (minutesInput) {
+          minutesInput.value = String(duration);
+        }
+
+        void handleStartFocus(duration);
+      });
+
+      pipWindow.addEventListener('pagehide', () => {
+        if (miniWindowRef.current === pipWindow) {
+          miniWindowRef.current = null;
+        }
+      });
+    } catch (err) {
+      console.warn('Unable to open mini timer:', err);
+
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'Unable to open the mini timer.',
+      );
+    }
+  };
+
+  /*
+   * Keep the PiP UI synchronized with the existing timer.
+   */
+  useEffect(() => {
+    const pipWindow = miniWindowRef.current;
+
+    if (!pipWindow || pipWindow.closed) {
+      return;
+    }
+
+    const doc = pipWindow.document;
+
+    const timeElement = doc.getElementById('mini-time');
+    const progressElement = doc.getElementById('mini-progress');
+    const progressFill = doc.getElementById('mini-progress-fill');
+    const setupElement = doc.getElementById('mini-setup');
+    const actionsElement = doc.getElementById('mini-actions');
+    const mainAction = doc.getElementById(
+      'mini-main-action',
+    ) as HTMLButtonElement | null;
+    const resetButton = doc.getElementById(
+      'mini-reset',
+    ) as HTMLButtonElement | null;
+    const visibilityButton = doc.getElementById(
+      'mini-visibility',
+    ) as HTMLButtonElement | null;
+    const minutesInput = doc.getElementById(
+      'mini-minutes',
+    ) as HTMLInputElement | null;
+
+    if (
+      !timeElement ||
+      !progressElement ||
+      !progressFill ||
+      !setupElement ||
+      !actionsElement ||
+      !mainAction ||
+      !resetButton ||
+      !visibilityButton
+    ) {
+      return;
+    }
+
+    /*
+     * No active timer:
+     * show the Focus Timer setup.
+     */
+    if (!activeTimer) {
+      setupElement.classList.remove('hidden');
+      actionsElement.classList.add('hidden');
+
+      timeElement.classList.remove('hidden');
+      progressElement.classList.add('hidden');
+
+      timeElement.textContent = formatTime(focusMinutes * 60);
+
+      if (minutesInput) {
+        minutesInput.value = String(focusMinutes);
+      }
+
+      return;
+    }
+
+    /*
+     * Active timer:
+     * hide setup controls.
+     */
+    setupElement.classList.add('hidden');
+    actionsElement.classList.remove('hidden');
+
+    /*
+     * Focus Timer.
+     */
+    if (activeTimer.type === 'FOCUS_TIMER') {
+      const totalSeconds =
+        activeTimer.durationSeconds ?? focusMinutes * 60;
+
+      const progress =
+        getFocusProgress(totalSeconds, displaySeconds) * 100;
+
+      progressFill.style.width = `${progress}%`;
+
+      /*
+       * Time hidden by default.
+       * Show progress bar instead.
+       */
+      if (!miniShowTimeRef.current) {
+        timeElement.classList.add('hidden');
+        progressElement.classList.remove('hidden');
+
+        visibilityButton.setAttribute('aria-label', 'Show time');
+        visibilityButton.setAttribute('title', 'Show time');
+
+        visibilityButton.innerHTML = `
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z"/>
+            <circle cx="12" cy="12" r="2.5"/>
+          </svg>
+        `;
+      } else {
+        timeElement.classList.remove('hidden');
+        progressElement.classList.add('hidden');
+
+        timeElement.textContent = formatTime(displaySeconds);
+
+        visibilityButton.setAttribute('aria-label', 'Hide time');
+        visibilityButton.setAttribute('title', 'Hide time');
+
+        visibilityButton.innerHTML = `
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M3 3l18 18"/>
+            <path d="M10.6 10.6a2 2 0 0 0 2.8 2.8"/>
+            <path d="M9.9 4.3A10.7 10.7 0 0 1 12 4c6 0 9.5 8 9.5 8a17.5 17.5 0 0 1-3.2 4.4"/>
+            <path d="M6.6 6.6C3.8 8.4 2.5 12 2.5 12s3.5 6 9.5 6c1.3 0 2.5-.3 3.6-.8"/>
+          </svg>
+        `;
+      }
+
+      /*
+       * Eye button.
+       */
+      visibilityButton.onclick = () => {
+        miniShowTimeRef.current = !miniShowTimeRef.current;
+
+        /*
+         * Force the current PiP UI to update immediately.
+         */
+        const nextShowTime = miniShowTimeRef.current;
+
+        if (nextShowTime) {
+          timeElement.classList.remove('hidden');
+          progressElement.classList.add('hidden');
+          timeElement.textContent = formatTime(displaySeconds);
+
+          visibilityButton.setAttribute(
+            'aria-label',
+            'Hide time',
+          );
+
+          visibilityButton.setAttribute(
+            'title',
+            'Hide time',
+          );
+
+          visibilityButton.innerHTML = `
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M3 3l18 18"/>
+              <path d="M10.6 10.6a2 2 0 0 0 2.8 2.8"/>
+              <path d="M9.9 4.3A10.7 10.7 0 0 1 12 4c6 0 9.5 8 9.5 8a17.5 17.5 0 0 1-3.2 4.4"/>
+              <path d="M6.6 6.6C3.8 8.4 2.5 12 2.5 12s3.5 6 9.5 6c1.3 0 2.5-.3 3.6-.8"/>
+            </svg>
+          `;
+        } else {
+          timeElement.classList.add('hidden');
+          progressElement.classList.remove('hidden');
+
+          visibilityButton.setAttribute(
+            'aria-label',
+            'Show time',
+          );
+
+          visibilityButton.setAttribute(
+            'title',
+            'Show time',
+          );
+
+          visibilityButton.innerHTML = `
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z"/>
+              <circle cx="12" cy="12" r="2.5"/>
+            </svg>
+          `;
+        }
+      };
+    } else {
+      /*
+       * Stopwatch always shows its elapsed time.
+       * The eye control is not needed for Stopwatch.
+       */
+      timeElement.classList.remove('hidden');
+      progressElement.classList.add('hidden');
+
+      timeElement.textContent = formatTime(displaySeconds);
+
+      visibilityButton.classList.add('hidden');
+    }
+
+    /*
+     * Running / paused main action.
+     */
+    if (activeTimer.status === 'RUNNING') {
+      mainAction.className = 'mini-action primary';
+
+      mainAction.innerHTML = `
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="currentColor"
+        >
+          <rect x="6" y="5" width="4" height="14" rx="1"/>
+          <rect x="14" y="5" width="4" height="14" rx="1"/>
+        </svg>
+      `;
+
+      mainAction.setAttribute('aria-label', 'Pause');
+      mainAction.setAttribute('title', 'Pause');
+
+      mainAction.onclick = () => {
+        void handlePause();
+      };
+
+      resetButton.classList.add('hidden');
+    } else {
+      mainAction.className = 'mini-action primary';
+
+      mainAction.innerHTML = `
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="currentColor"
+        >
+          <path d="M8 5.5v13l10-6.5-10-6.5Z"/>
+        </svg>
+      `;
+
+      mainAction.setAttribute('aria-label', 'Resume');
+      mainAction.setAttribute('title', 'Resume');
+
+      mainAction.onclick = () => {
+        void handleResume();
+      };
+
+      resetButton.classList.remove('hidden');
+
+      resetButton.onclick = () => {
+        void handleCancel();
+      };
+    }
+  }, [
+    activeTimer,
+    displaySeconds,
+    focusMinutes,
+    handlePause,
+    handleResume,
+    handleCancel,
+  ]);
+
   const handleTabChange = (type: TimerType) => {
     if (activeTimer) return;
 
@@ -561,7 +1281,10 @@ export function Timer() {
                 const totalSeconds =
                   activeTimer.durationSeconds ?? focusMinutes * 60;
 
-                const progress = getFocusProgress(totalSeconds, displaySeconds);
+                const progress = getFocusProgress(
+                  totalSeconds,
+                  displaySeconds,
+                );
 
                 const segmentStart = index / segments.length;
                 const segmentEnd = (index + 1) / segments.length;
@@ -620,7 +1343,7 @@ export function Timer() {
 
           <button
             type="button"
-            onClick={handleStartFocus}
+            onClick={() => void handleStartFocus()}
             disabled={actionLoading}
             className="rounded-[var(--radius-md)] bg-[var(--color-primary)] px-5 py-2.5 text-base font-medium text-white transition-colors hover:bg-[var(--color-primary-hover)] disabled:cursor-not-allowed disabled:opacity-50"
           >
@@ -684,6 +1407,19 @@ export function Timer() {
           >
             <LuRotateCcw size={16} strokeWidth={1.8} />
             Reset
+          </button>
+        )}
+
+        {/* Mini timer / Picture-in-Picture */}
+        {activeTimer && (
+          <button
+            type="button"
+            onClick={() => void handleOpenMiniTimer()}
+            title={activeTimer ? 'Minimize timer' : 'Open timer'}
+            aria-label={activeTimer ? 'Minimize timer' : 'Open timer'}
+            className="hidden h-10 w-10 items-center justify-center rounded-[var(--radius-md)] border border-[var(--color-border)] text-[var(--color-text-secondary)] transition-colors hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text)] sm:inline-flex"
+          >
+            <LuPictureInPicture size={17} strokeWidth={1.8} />
           </button>
         )}
       </div>
