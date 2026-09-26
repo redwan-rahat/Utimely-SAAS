@@ -1,11 +1,15 @@
-import Link from "next/link";
-import HeroFeatures from "./HeroFeatures";
-import ProductDemo from "./ProductDemo";
-import ProcessSection from "./ProcessSection";
-import PlatformShowcase from "./PlatformShowcase";
-import FAQSection from "./FAQSection";
+'use client';
+import Link from 'next/link';
+import HeroFeatures from './HeroFeatures';
+import ProductDemo from './ProductDemo';
+import ProcessSection from './ProcessSection';
+import PlatformShowcase from './PlatformShowcase';
+import FAQSection from './FAQSection';
+import { authClient } from '@/lib/auth-client';
 
 export default function HeroSection() {
+  const { data: session, isPending } = authClient.useSession();
+
   return (
     <section className="bg-background">
       <div className="mx-auto w-full max-w-[1200px] px-5 md:px-6 lg:px-8">
@@ -24,7 +28,7 @@ export default function HeroSection() {
             {/* Buttons */}
             <div className="mt-8 lg:mt-12 flex flex-wrap items-center gap-3">
               <Link
-                href="/sign-in"
+                href={session ? '/dashboard' : '/sign-up'}
                 className="rounded-md bg-primary px-5 py-3.5 text-button font-medium leading-body tracking-body text-white transition-colors hover:bg-primary-hover"
               >
                 Start your timer
@@ -42,8 +46,8 @@ export default function HeroSection() {
           {/* Right */}
           <div className="max-w-[280px] mt-10 lg:ml-auto">
             <p className="text-body leading-body tracking-body text-text">
-              Give your ADHD brain a simpler way to set goals, stay focused,
-              and actually make progress.
+              Give your ADHD brain a simpler way to set goals, stay focused, and
+              actually make progress.
             </p>
           </div>
         </div>
@@ -54,18 +58,18 @@ export default function HeroSection() {
         </div>
 
         <div id="video-showcase">
-        <ProductDemo></ProductDemo>
+          <ProductDemo></ProductDemo>
         </div>
         <div>
           <PlatformShowcase></PlatformShowcase>
         </div>
 
         <div id="process-section">
-        <ProcessSection></ProcessSection>
+          <ProcessSection></ProcessSection>
         </div>
 
         <div id="faq">
-        <FAQSection></FAQSection>
+          <FAQSection></FAQSection>
         </div>
       </div>
     </section>
