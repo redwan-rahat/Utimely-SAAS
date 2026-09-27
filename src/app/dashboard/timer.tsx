@@ -817,6 +817,20 @@ export function Timer() {
           <div id="mini-actions" class="mini-actions hidden">
 
             <button
+              id="mini-save"
+              class="mini-action hidden"
+              type="button"
+              aria-label="Save"
+              title="Save"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M5 4h11l3 3v13H5z"/>
+                <path d="M8 4v6h8V4"/>
+                <path d="M8 20v-6h8v6"/>
+              </svg>
+            </button>
+
+            <button
               id="mini-main-action"
               class="mini-action primary"
               type="button"
@@ -919,6 +933,9 @@ export function Timer() {
     const mainAction = doc.getElementById(
       'mini-main-action',
     ) as HTMLButtonElement | null;
+    const saveButton = doc.getElementById(
+      'mini-save',
+    ) as HTMLButtonElement | null;
     const resetButton = doc.getElementById(
       'mini-reset',
     ) as HTMLButtonElement | null;
@@ -937,6 +954,7 @@ export function Timer() {
       !setupElement ||
       !actionsElement ||
       !mainAction ||
+      !saveButton ||
       !resetButton ||
       !visibilityButton ||
       !pausedStatus
@@ -1142,6 +1160,7 @@ export function Timer() {
         void handlePause();
       };
 
+      saveButton.classList.add('hidden');
       resetButton.classList.add('hidden');
     } else {
       mainAction.className = 'mini-action primary';
@@ -1164,6 +1183,11 @@ export function Timer() {
         void handleResume();
       };
 
+      saveButton.classList.remove('hidden');
+      saveButton.onclick = () => {
+        void handleSave();
+      };
+
       resetButton.classList.remove('hidden');
 
       resetButton.onclick = () => {
@@ -1176,6 +1200,7 @@ export function Timer() {
     focusMinutes,
     handlePause,
     handleResume,
+    handleSave,
     handleCancel,
   ]);
 
