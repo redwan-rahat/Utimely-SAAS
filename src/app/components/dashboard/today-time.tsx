@@ -19,6 +19,10 @@ type TimeSessionsResponse = {
   timeSessions: TimeSession[];
 };
 
+interface TodayTimeProps {
+  date?: string;
+}
+
 const TIME_SESSIONS_QUERY = `
   query {
     timeSessions {
@@ -32,16 +36,18 @@ const TIME_SESSIONS_QUERY = `
   }
 `;
 
-function isToday(dateString: string) {
+function getTodayDate() {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Dhaka',
+  }).format(new Date());
+}
+
+function isSameDate(dateString: string, targetDate: string) {
   const sessionDate = new Intl.DateTimeFormat('en-CA', {
     timeZone: 'Asia/Dhaka',
   }).format(new Date(dateString));
 
-  const today = new Intl.DateTimeFormat('en-CA', {
-    timeZone: 'Asia/Dhaka',
-  }).format(new Date());
-
-  return sessionDate === today;
+  return sessionDate === targetDate;
 }
 
 function formatDuration(seconds: number) {
@@ -61,10 +67,14 @@ function formatDuration(seconds: number) {
   return `${hours}h ${remainingMinutes}m`;
 }
 
-export function TodayTime() {
+export function TodayTime({ date }: TodayTimeProps) {
   const [sessions, setSessions] = useState<TimeSession[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Use the provided date when available.
+  // Otherwise, default to today's date.
+  const targetDate = date ?? getTodayDate();
 
   useEffect(() => {
     const loadTimeSessions = async () => {
@@ -74,13 +84,14 @@ export function TodayTime() {
         const data =
           await graphqlRequest<TimeSessionsResponse>(TIME_SESSIONS_QUERY);
 
-        const todaySessions = data.timeSessions.filter(
+        const targetSessions = data.timeSessions.filter(
           (session) =>
-            isToday(session.startedAt) &&
-            (session.type === 'FOCUS_TIMER' || session.type === 'STOPWATCH'),
+            isSameDate(session.startedAt, targetDate) &&
+            (session.type === 'FOCUS_TIMER' ||
+              session.type === 'STOPWATCH'),
         );
 
-        setSessions(todaySessions);
+        setSessions(targetSessions);
       } catch (err) {
         setError(
           err instanceof Error ? err.message : "Failed to load today's time",
@@ -101,7 +112,7 @@ export function TodayTime() {
     return () => {
       window.removeEventListener('utimely:time-updated', handleTimeUpdated);
     };
-  }, []);
+  }, [targetDate]);
 
   const focusSessions = sessions.filter(
     (session) => session.type === 'FOCUS_TIMER',
@@ -129,7 +140,9 @@ export function TodayTime() {
         </h2>
 
         <p className="mt-1.5 text-base text-[var(--color-text-secondary)]">
-          Your focus and stopwatch sessions today.
+          {date
+            ? 'Your focus and stopwatch sessions for this day.'
+            : 'Your focus and stopwatch sessions today.'}
         </p>
       </div>
 
@@ -150,7 +163,7 @@ export function TodayTime() {
       {!loading && !error && sessions.length === 0 && (
         <div className="flex min-h-40 items-center justify-center rounded-[var(--radius-md)] bg-[var(--color-background)]">
           <p className="text-sm text-[var(--color-text-muted)]">
-            No time recorded today.
+            No time recorded {date ? 'for this day' : 'today'}.
           </p>
         </div>
       )}
@@ -189,7 +202,7 @@ export function TodayTime() {
               </div>
             ) : (
               <p className="text-sm text-[var(--color-text-muted)]">
-                No focus sessions today.
+                No focus sessions {date ? 'for this day' : 'today'}.
               </p>
             )}
           </div>
@@ -226,7 +239,7 @@ export function TodayTime() {
               </div>
             ) : (
               <p className="text-sm text-[var(--color-text-muted)]">
-                No stopwatch sessions today.
+                No stopwatch sessions {date ? 'for this day' : 'today'}.
               </p>
             )}
           </div>

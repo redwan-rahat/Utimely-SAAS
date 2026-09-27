@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { ArrowLeft, Plus, RefreshCw, X } from 'lucide-react';
 import { graphqlRequest } from '@/lib/graphql-client';
 import TaskCard from '@/app/components/tasks/TaskCard';
+import { TodayTime } from '@/app/components/dashboard/today-time';
 
 type Tag = {
   id: string;
@@ -924,7 +925,6 @@ export default function CalendarDayPage({
               strokeWidth={1.8}
               className={refreshing ? 'animate-spin' : ''}
             />
-
             Refresh
           </button>
         </div>
@@ -1065,31 +1065,35 @@ export default function CalendarDayPage({
             RIGHT: TAGS
         ================================================= */}
 
-        <TagSidebar
-          tags={tags}
-          tasks={tasks}
-          selectedTagId={selectedTagId}
-          setSelectedTagId={setSelectedTagId}
-          showCreateTag={showCreateTag}
-          setShowCreateTag={setShowCreateTag}
-          tagName={tagName}
-          setTagName={setTagName}
-          tagColor={tagColor}
-          setTagColor={setTagColor}
-          creatingTag={creatingTag}
-          onCreateTag={handleCreateTag}
-          editingTagId={editingTagId}
-          editingTagName={editingTagName}
-          setEditingTagName={setEditingTagName}
-          editingTagColor={editingTagColor}
-          setEditingTagColor={setEditingTagColor}
-          savingTag={savingTag}
-          onStartEdit={startEditTag}
-          onCancelEdit={cancelEditTag}
-          onUpdateTag={handleUpdateTag}
-          deletingTagId={deletingTagId}
-          onDeleteTag={handleDeleteTag}
-        />
+        <div className="space-y-6">
+          <TagSidebar
+            tags={tags}
+            tasks={tasks}
+            selectedTagId={selectedTagId}
+            setSelectedTagId={setSelectedTagId}
+            showCreateTag={showCreateTag}
+            setShowCreateTag={setShowCreateTag}
+            tagName={tagName}
+            setTagName={setTagName}
+            tagColor={tagColor}
+            setTagColor={setTagColor}
+            creatingTag={creatingTag}
+            onCreateTag={handleCreateTag}
+            editingTagId={editingTagId}
+            editingTagName={editingTagName}
+            setEditingTagName={setEditingTagName}
+            editingTagColor={editingTagColor}
+            setEditingTagColor={setEditingTagColor}
+            savingTag={savingTag}
+            onStartEdit={startEditTag}
+            onCancelEdit={cancelEditTag}
+            onUpdateTag={handleUpdateTag}
+            deletingTagId={deletingTagId}
+            onDeleteTag={handleDeleteTag}
+          />
+
+          <TodayTime date={date} />
+        </div>
       </div>
 
       {/* ===================================================
