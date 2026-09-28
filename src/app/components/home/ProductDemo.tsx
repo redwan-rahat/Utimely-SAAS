@@ -1,6 +1,6 @@
 export default function ProductDemo() {
   return (
-    <section className="bg-background pt-32 sm:pt-44 lg:pt-48">
+    <section className="bg-background pt-32 sm:pt-44 pb-10 lg:pt-48">
       <div className="mx-auto w-full max-w-[1200px] ">
         {/* Heading */}
         <div className="sm:flex items-end gap-6 justify-between">
@@ -15,11 +15,11 @@ export default function ProductDemo() {
         </div>
 
         {/* Video */}
-        <div className="mt-12  overflow-hidden rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-surface shadow-[0_2px_10px_rgba(0,0,0,0.04)] sm:mt-14">
-          <div className="aspect-video w-full">
+        <div className="mt-12 border border-primary/70 shadow-lg  shadow-primary/20  overflow-hidden rounded-[var(--radius-lg)]  bg-surface  sm:mt-14">
+          <div className="aspect-video  w-full">
             <iframe
               className="h-full w-full"
-              src="https://www.youtube.com/embed/DkUuOr21v4s"
+              src="https://www.youtube.com/embed/K3vPEqzxBas"
               title="See how Utimely works"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
               allowFullScreen

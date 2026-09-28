@@ -37,7 +37,7 @@ const platforms = [
 
 export default function PlatformShowcase() {
   return (
-    <section className="bg-background pt-32 sm:pt-44 lg:pt-48 ">
+    <section className="bg-background pt-28 sm:pt-40 lg:pt-44 ">
       <div className="mx-auto w-full max-w-[1200px]">
         {/* Heading */}
         <div className="max-w-[600px] space-y-6 mx-auto text-center">
