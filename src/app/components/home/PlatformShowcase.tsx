@@ -50,13 +50,13 @@ export default function PlatformShowcase() {
           </h2>
         </div>
 
-        {/* Description */}
+
         <p className="mt-5 text-center m-auto max-w-[400px] text-body leading-body tracking-body text-text-secondary">
           Your goals, tasks, and progress stay with you across the devices you
           already use.
         </p>
 
-        {/* Platform Grid */}
+
         <div className="mt-14 border-y border-[var(--color-border)]">
           <div className="grid grid-cols-2 sm:grid-cols-3">
             {platforms.map((platform, index) => {
